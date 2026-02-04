@@ -24,14 +24,41 @@ namespace HospitalManagementSystem.BLL.Services
         /// <summary>
         /// Creates an appointment using the stored procedure.
         /// </summary>
-        public Task<int> CreateAsync(Appointment appointment)
+        public async Task<int> CreateAsync(Appointment appointment)
         {
             if (appointment == null)
             {
                 throw new ArgumentNullException(nameof(appointment));
             }
 
-            return _repository.AddAppointmentAsync(appointment);
+            return await _repository.AddAppointmentAsync(appointment).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Schedules an appointment with availability check.
+        /// </summary>
+        public async Task<int> ScheduleAsync(Appointment appointment, int createdBy)
+        {
+            if (appointment == null)
+            {
+                throw new ArgumentNullException(nameof(appointment));
+            }
+
+            var result = await _repository.CreateAppointmentAsync(
+                appointment.PatientID,
+                appointment.DoctorID,
+                appointment.AppointmentDate,
+                appointment.AppointmentTime,
+                appointment.AppointmentType,
+                appointment.Reason,
+                createdBy).ConfigureAwait(false);
+
+            if (result.AppointmentID <= 0)
+            {
+                throw new InvalidOperationException(result.ErrorMessage ?? "Unable to schedule appointment.");
+            }
+
+            return result.AppointmentID;
         }
 
         /// <summary>

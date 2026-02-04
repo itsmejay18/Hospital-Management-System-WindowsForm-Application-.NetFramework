@@ -17,9 +17,29 @@ namespace HospitalManagementSystem.UserControls
             dgvBilling.AutoGenerateColumns = false;
             dgvBilling.DataSource = _invoices;
             Load += ucBilling_Load;
+            btnProcessPayment.Click += btnProcessPayment_Click;
         }
 
         private async void ucBilling_Load(object sender, EventArgs e)
+        {
+            await ucBilling_LoadAsync().ConfigureAwait(false);
+        }
+
+        private void btnProcessPayment_Click(object sender, EventArgs e)
+        {
+            if (dgvBilling.CurrentRow?.DataBoundItem is Invoice invoice)
+            {
+                using (var dlg = new Forms.Shared.frmInvoicePayment(invoice.InvoiceID))
+                {
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        _ = ucBilling_LoadAsync();
+                    }
+                }
+            }
+        }
+
+        private async System.Threading.Tasks.Task ucBilling_LoadAsync()
         {
             try
             {

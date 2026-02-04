@@ -97,12 +97,32 @@
     <Compile Include="Forms\Shared\frmPatientEdit.Designer.cs">
       <DependentUpon>frmPatientEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Shared\frmDoctorEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmDoctorEdit.Designer.cs">
+      <DependentUpon>frmDoctorEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Shared\frmAppointmentEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmAppointmentEdit.Designer.cs">
+      <DependentUpon>frmAppointmentEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Shared\frmInvoicePayment.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmInvoicePayment.Designer.cs">
+      <DependentUpon>frmInvoicePayment.cs</DependentUpon>
+    </Compile>
     <Compile Include="BLL\Services\AppointmentService.cs" />
     <Compile Include="BLL\Services\BillingService.cs" />
     <Compile Include="BLL\Services\DashboardService.cs" />
     <Compile Include="BLL\Services\DoctorService.cs" />
     <Compile Include="BLL\Services\PatientService.cs" />
+    <Compile Include="BLL\Services\ReportService.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
+    <Compile Include="Helpers\ExportHelper.cs" />
     <Compile Include="Models\Appointment.cs" />
     <Compile Include="Models\AppointmentHistory.cs" />
     <Compile Include="Models\BindableBase.cs" />

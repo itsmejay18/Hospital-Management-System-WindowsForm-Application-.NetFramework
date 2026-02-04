@@ -18,6 +18,9 @@ namespace HospitalManagementSystem.UserControls
             dgvDoctors.AutoGenerateColumns = false;
             dgvDoctors.DataSource = _doctors;
             Load += ucDoctors_Load;
+            btnAdd.Click += btnAdd_Click;
+            btnEdit.Click += btnEdit_Click;
+            btnDelete.Click += btnDelete_Click;
         }
 
         private async void ucDoctors_Load(object sender, EventArgs e)
@@ -44,6 +47,46 @@ namespace HospitalManagementSystem.UserControls
             finally
             {
                 UseWaitCursor = false;
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            using (var dlg = new frmDoctorEdit())
+            {
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    _ = ReloadAsync();
+                }
+            }
+        }
+
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            if (dgvDoctors.CurrentRow?.DataBoundItem is Doctor doctor)
+            {
+                using (var dlg = new frmDoctorEdit(doctor))
+                {
+                    if (dlg.ShowDialog() == DialogResult.OK)
+                    {
+                        _ = ReloadAsync();
+                    }
+                }
+            }
+        }
+
+        private async void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (dgvDoctors.CurrentRow?.DataBoundItem is Doctor doctor)
+            {
+                var confirm = MessageBox.Show("Delete this doctor?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes)
+                {
+                    return;
+                }
+
+                await _service.DeleteAsync(doctor.DoctorID).ConfigureAwait(true);
+                await ReloadAsync().ConfigureAwait(true);
             }
         }
     }
