@@ -1,0 +1,1445 @@
+-- ============================================
+-- Hospital Management System Database Schema
+-- MySQL Version
+-- ============================================
+
+-- Create Database
+DROP DATABASE IF EXISTS HospitalManagementSystem;
+CREATE DATABASE HospitalManagementSystem;
+USE HospitalManagementSystem;
+
+-- ============================================
+-- 1. USER MANAGEMENT TABLES
+-- ============================================
+
+-- User Roles
+CREATE TABLE UserRoles (
+    RoleID INT PRIMARY KEY AUTO_INCREMENT,
+    RoleName VARCHAR(50) NOT NULL UNIQUE,
+    Description VARCHAR(255),
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Users Table
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY AUTO_INCREMENT,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Email VARCHAR(100) UNIQUE,
+    RoleID INT NOT NULL,
+    IsActive BOOLEAN DEFAULT TRUE,
+    LastLogin DATETIME,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (RoleID) REFERENCES UserRoles(RoleID) ON DELETE RESTRICT
+);
+
+-- User Details
+CREATE TABLE UserDetails (
+    UserDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT UNIQUE NOT NULL,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    DateOfBirth DATE,
+    Gender ENUM('M', 'F', 'O'),
+    ContactNumber VARCHAR(20),
+    Address VARCHAR(255),
+    EmergencyContact VARCHAR(20),
+    ProfileImage LONGBLOB,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 2. PATIENT MANAGEMENT
+-- ============================================
+
+-- Patients Table
+CREATE TABLE Patients (
+    PatientID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientCode VARCHAR(20) UNIQUE NOT NULL,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    DateOfBirth DATE NOT NULL,
+    Gender ENUM('M', 'F', 'O'),
+    BloodGroup VARCHAR(5),
+    MaritalStatus VARCHAR(20),
+    Nationality VARCHAR(50),
+    IdentificationType VARCHAR(50),
+    IdentificationNumber VARCHAR(50),
+    RegistrationDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    IsActive BOOLEAN DEFAULT TRUE
+);
+
+-- Patient Contacts
+CREATE TABLE PatientContacts (
+    ContactID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT NOT NULL,
+    ContactType ENUM('Phone', 'Email', 'Address'),
+    ContactValue VARCHAR(255) NOT NULL,
+    IsPrimary BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE
+);
+
+-- Patient Medical History
+CREATE TABLE MedicalHistories (
+    HistoryID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT NOT NULL,
+    HistoryType VARCHAR(50),
+    Description VARCHAR(500),
+    DiagnosisDate DATE,
+    Severity VARCHAR(20),
+    Status VARCHAR(20) DEFAULT 'Active',
+    RecordedBy INT,
+    RecordedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (RecordedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- ============================================
+-- 3. DOCTORS & STAFF
+-- ============================================
+
+-- Specializations
+CREATE TABLE Specializations (
+    SpecializationID INT PRIMARY KEY AUTO_INCREMENT,
+    SpecializationCode VARCHAR(20) UNIQUE NOT NULL,
+    SpecializationName VARCHAR(100) NOT NULL,
+    Description VARCHAR(255),
+    Department VARCHAR(100)
+);
+
+-- Doctors
+CREATE TABLE Doctors (
+    DoctorID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT UNIQUE NOT NULL,
+    DoctorCode VARCHAR(20) UNIQUE NOT NULL,
+    SpecializationID INT,
+    Qualification VARCHAR(255),
+    LicenseNumber VARCHAR(50),
+    YearsOfExperience INT,
+    ConsultationFee DECIMAL(10,2),
+    IsAvailable BOOLEAN DEFAULT TRUE,
+    JoiningDate DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (SpecializationID) REFERENCES Specializations(SpecializationID) ON DELETE SET NULL
+);
+
+-- Doctor Schedule
+CREATE TABLE DoctorSchedules (
+    ScheduleID INT PRIMARY KEY AUTO_INCREMENT,
+    DoctorID INT NOT NULL,
+    DayOfWeek INT CHECK (DayOfWeek BETWEEN 1 AND 7),
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    MaxAppointments INT DEFAULT 20,
+    IsActive BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE
+);
+
+-- Staff
+CREATE TABLE Staff (
+    StaffID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT UNIQUE NOT NULL,
+    StaffCode VARCHAR(20) UNIQUE NOT NULL,
+    Designation VARCHAR(100),
+    Department VARCHAR(100),
+    Shift VARCHAR(20),
+    HireDate DATE DEFAULT (CURRENT_DATE),
+    Salary DECIMAL(10,2),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 4. APPOINTMENTS
+-- ============================================
+
+-- Appointments
+CREATE TABLE Appointments (
+    AppointmentID INT PRIMARY KEY AUTO_INCREMENT,
+    AppointmentCode VARCHAR(20) UNIQUE NOT NULL,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    AppointmentDate DATE NOT NULL,
+    AppointmentTime TIME NOT NULL,
+    AppointmentType ENUM('Consultation', 'Follow-up', 'Emergency', 'Check-up'),
+    Status ENUM('Scheduled', 'Confirmed', 'Completed', 'Cancelled', 'No-show') DEFAULT 'Scheduled',
+    Reason VARCHAR(500),
+    Duration INT DEFAULT 15,
+    CreatedBy INT,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Notes TEXT,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE,
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- Appointment History (Audit)
+CREATE TABLE AppointmentHistory (
+    HistoryID INT PRIMARY KEY AUTO_INCREMENT,
+    AppointmentID INT NOT NULL,
+    Status VARCHAR(20),
+    ChangedBy INT,
+    ChangedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Notes VARCHAR(500),
+    FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID) ON DELETE CASCADE,
+    FOREIGN KEY (ChangedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- ============================================
+-- 5. BILLING & PAYMENTS
+-- ============================================
+
+-- Service Categories
+CREATE TABLE ServiceCategories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryName VARCHAR(100) NOT NULL,
+    Description VARCHAR(255)
+);
+
+-- Services
+CREATE TABLE Services (
+    ServiceID INT PRIMARY KEY AUTO_INCREMENT,
+    ServiceCode VARCHAR(20) UNIQUE NOT NULL,
+    ServiceName VARCHAR(200) NOT NULL,
+    CategoryID INT,
+    Price DECIMAL(10,2) NOT NULL,
+    TaxRate DECIMAL(5,2) DEFAULT 0,
+    IsActive BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (CategoryID) REFERENCES ServiceCategories(CategoryID) ON DELETE SET NULL
+);
+
+-- Invoices
+CREATE TABLE Invoices (
+    InvoiceID INT PRIMARY KEY AUTO_INCREMENT,
+    InvoiceNumber VARCHAR(30) UNIQUE NOT NULL,
+    PatientID INT NOT NULL,
+    AppointmentID INT,
+    InvoiceDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    DueDate DATETIME,
+    TotalAmount DECIMAL(10,2) DEFAULT 0,
+    Discount DECIMAL(10,2) DEFAULT 0,
+    TaxAmount DECIMAL(10,2) DEFAULT 0,
+    GrandTotal DECIMAL(10,2) DEFAULT 0,
+    Status ENUM('Pending', 'Paid', 'Partial', 'Cancelled') DEFAULT 'Pending',
+    CreatedBy INT,
+    Notes TEXT,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID) ON DELETE SET NULL,
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- Invoice Details
+CREATE TABLE InvoiceDetails (
+    DetailID INT PRIMARY KEY AUTO_INCREMENT,
+    InvoiceID INT NOT NULL,
+    ServiceID INT NOT NULL,
+    Quantity INT DEFAULT 1,
+    UnitPrice DECIMAL(10,2),
+    TotalPrice DECIMAL(10,2) AS (Quantity * UnitPrice) STORED,
+    FOREIGN KEY (InvoiceID) REFERENCES Invoices(InvoiceID) ON DELETE CASCADE,
+    FOREIGN KEY (ServiceID) REFERENCES Services(ServiceID) ON DELETE CASCADE
+);
+
+-- Payments
+CREATE TABLE Payments (
+    PaymentID INT PRIMARY KEY AUTO_INCREMENT,
+    PaymentNumber VARCHAR(30) UNIQUE NOT NULL,
+    InvoiceID INT NOT NULL,
+    PaymentDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PaymentMethod ENUM('Cash', 'Credit Card', 'Debit Card', 'Insurance', 'Online'),
+    Amount DECIMAL(10,2) NOT NULL,
+    ReferenceNumber VARCHAR(100),
+    ReceivedBy INT,
+    Notes TEXT,
+    FOREIGN KEY (InvoiceID) REFERENCES Invoices(InvoiceID) ON DELETE CASCADE,
+    FOREIGN KEY (ReceivedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- ============================================
+-- 6. MEDICAL RECORDS
+-- ============================================
+
+-- Visits/Consultations
+CREATE TABLE Visits (
+    VisitID INT PRIMARY KEY AUTO_INCREMENT,
+    VisitCode VARCHAR(20) UNIQUE NOT NULL,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    AppointmentID INT,
+    VisitDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Symptoms TEXT,
+    Diagnosis TEXT,
+    Treatment TEXT,
+    FollowUpDate DATE,
+    VisitStatus VARCHAR(20) DEFAULT 'Completed',
+    CreatedBy INT,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE,
+    FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID) ON DELETE SET NULL,
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- Prescriptions
+CREATE TABLE Prescriptions (
+    PrescriptionID INT PRIMARY KEY AUTO_INCREMENT,
+    PrescriptionCode VARCHAR(20) UNIQUE NOT NULL,
+    VisitID INT NOT NULL,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    PrescriptionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Instructions TEXT,
+    Status VARCHAR(20) DEFAULT 'Active',
+    FOREIGN KEY (VisitID) REFERENCES Visits(VisitID) ON DELETE CASCADE,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE
+);
+
+-- Prescription Details
+CREATE TABLE PrescriptionDetails (
+    PrescriptionDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    PrescriptionID INT NOT NULL,
+    MedicineName VARCHAR(200) NOT NULL,
+    Dosage VARCHAR(100),
+    Frequency VARCHAR(100),
+    Duration VARCHAR(50),
+    Instructions TEXT,
+    FOREIGN KEY (PrescriptionID) REFERENCES Prescriptions(PrescriptionID) ON DELETE CASCADE
+);
+
+-- Lab Tests
+CREATE TABLE LabTests (
+    TestID INT PRIMARY KEY AUTO_INCREMENT,
+    TestCode VARCHAR(20) UNIQUE NOT NULL,
+    TestName VARCHAR(200) NOT NULL,
+    Category VARCHAR(100),
+    NormalRange VARCHAR(200),
+    Unit VARCHAR(50),
+    Price DECIMAL(10,2)
+);
+
+-- Lab Orders
+CREATE TABLE LabOrders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderCode VARCHAR(20) UNIQUE NOT NULL,
+    VisitID INT,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Status ENUM('Pending', 'In Progress', 'Completed', 'Cancelled') DEFAULT 'Pending',
+    ResultDate DATETIME,
+    Notes TEXT,
+    FOREIGN KEY (VisitID) REFERENCES Visits(VisitID) ON DELETE SET NULL,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE
+);
+
+-- Lab Order Details
+CREATE TABLE LabOrderDetails (
+    OrderDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT NOT NULL,
+    TestID INT NOT NULL,
+    ResultValue VARCHAR(200),
+    ResultUnit VARCHAR(50),
+    NormalRange VARCHAR(200),
+    IsNormal BOOLEAN,
+    Notes TEXT,
+    TechnicianID INT,
+    CompletedDate DATETIME,
+    FOREIGN KEY (OrderID) REFERENCES LabOrders(OrderID) ON DELETE CASCADE,
+    FOREIGN KEY (TestID) REFERENCES LabTests(TestID) ON DELETE CASCADE,
+    FOREIGN KEY (TechnicianID) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- ============================================
+-- 7. INVENTORY & PHARMACY
+-- ============================================
+
+-- Medicine Categories
+CREATE TABLE MedicineCategories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryName VARCHAR(100) NOT NULL,
+    Description VARCHAR(255)
+);
+
+-- Medicines
+CREATE TABLE Medicines (
+    MedicineID INT PRIMARY KEY AUTO_INCREMENT,
+    MedicineCode VARCHAR(20) UNIQUE NOT NULL,
+    MedicineName VARCHAR(200) NOT NULL,
+    GenericName VARCHAR(200),
+    CategoryID INT,
+    Manufacturer VARCHAR(200),
+    UnitOfMeasure VARCHAR(50),
+    UnitPrice DECIMAL(10,2) NOT NULL,
+    SellingPrice DECIMAL(10,2) NOT NULL,
+    ReorderLevel INT DEFAULT 10,
+    IsActive BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (CategoryID) REFERENCES MedicineCategories(CategoryID) ON DELETE SET NULL
+);
+
+-- Inventory
+CREATE TABLE Inventory (
+    InventoryID INT PRIMARY KEY AUTO_INCREMENT,
+    MedicineID INT NOT NULL,
+    BatchNumber VARCHAR(100),
+    ExpiryDate DATE,
+    Quantity INT NOT NULL DEFAULT 0,
+    PurchasePrice DECIMAL(10,2),
+    SellingPrice DECIMAL(10,2),
+    Supplier VARCHAR(200),
+    PurchaseDate DATE DEFAULT (CURRENT_DATE),
+    Location VARCHAR(100),
+    FOREIGN KEY (MedicineID) REFERENCES Medicines(MedicineID) ON DELETE CASCADE
+);
+
+-- Pharmacy Sales
+CREATE TABLE PharmacySales (
+    SaleID INT PRIMARY KEY AUTO_INCREMENT,
+    SaleNumber VARCHAR(30) UNIQUE NOT NULL,
+    PatientID INT,
+    SaleDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    TotalAmount DECIMAL(10,2) DEFAULT 0,
+    Discount DECIMAL(10,2) DEFAULT 0,
+    NetAmount DECIMAL(10,2) DEFAULT 0,
+    PaymentStatus ENUM('Pending', 'Paid', 'Partial') DEFAULT 'Pending',
+    SoldBy INT,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE SET NULL,
+    FOREIGN KEY (SoldBy) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- Pharmacy Sale Details
+CREATE TABLE PharmacySaleDetails (
+    SaleDetailID INT PRIMARY KEY AUTO_INCREMENT,
+    SaleID INT NOT NULL,
+    MedicineID INT NOT NULL,
+    BatchNumber VARCHAR(100),
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(10,2),
+    TotalPrice DECIMAL(10,2) AS (Quantity * UnitPrice) STORED,
+    FOREIGN KEY (SaleID) REFERENCES PharmacySales(SaleID) ON DELETE CASCADE,
+    FOREIGN KEY (MedicineID) REFERENCES Medicines(MedicineID) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 8. WARDS & ROOMS
+-- ============================================
+
+-- Wards
+CREATE TABLE Wards (
+    WardID INT PRIMARY KEY AUTO_INCREMENT,
+    WardCode VARCHAR(20) UNIQUE NOT NULL,
+    WardName VARCHAR(100) NOT NULL,
+    WardType VARCHAR(50),
+    Description VARCHAR(255),
+    TotalBeds INT DEFAULT 0,
+    AvailableBeds INT DEFAULT 0,
+    ChargePerDay DECIMAL(10,2),
+    IsActive BOOLEAN DEFAULT TRUE
+);
+
+-- Rooms
+CREATE TABLE Rooms (
+    RoomID INT PRIMARY KEY AUTO_INCREMENT,
+    RoomNumber VARCHAR(20) UNIQUE NOT NULL,
+    WardID INT,
+    RoomType VARCHAR(50),
+    TotalBeds INT DEFAULT 1,
+    AvailableBeds INT DEFAULT 0,
+    Facilities TEXT,
+    RatePerDay DECIMAL(10,2),
+    Status VARCHAR(20) DEFAULT 'Available',
+    FOREIGN KEY (WardID) REFERENCES Wards(WardID) ON DELETE CASCADE
+);
+
+-- Admissions
+CREATE TABLE Admissions (
+    AdmissionID INT PRIMARY KEY AUTO_INCREMENT,
+    AdmissionNumber VARCHAR(30) UNIQUE NOT NULL,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    RoomID INT,
+    AdmissionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ExpectedDischargeDate DATE,
+    ActualDischargeDate DATETIME,
+    AdmissionReason TEXT,
+    Diagnosis TEXT,
+    Status ENUM('Admitted', 'Discharged', 'Transferred') DEFAULT 'Admitted',
+    DischargeSummary TEXT,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE,
+    FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID) ON DELETE SET NULL
+);
+
+-- Bed Allocation
+CREATE TABLE BedAllocations (
+    AllocationID INT PRIMARY KEY AUTO_INCREMENT,
+    AdmissionID INT NOT NULL,
+    RoomID INT NOT NULL,
+    BedNumber VARCHAR(10),
+    AllocationDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    DischargeDate DATETIME,
+    Status VARCHAR(20) DEFAULT 'Occupied',
+    FOREIGN KEY (AdmissionID) REFERENCES Admissions(AdmissionID) ON DELETE CASCADE,
+    FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 9. SYSTEM & AUDIT
+-- ============================================
+
+-- System Settings
+CREATE TABLE SystemSettings (
+    SettingID INT PRIMARY KEY AUTO_INCREMENT,
+    SettingKey VARCHAR(100) UNIQUE NOT NULL,
+    SettingValue TEXT,
+    Description VARCHAR(255),
+    Category VARCHAR(50),
+    LastModified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Audit Log
+CREATE TABLE AuditLogs (
+    LogID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT,
+    Action VARCHAR(100) NOT NULL,
+    TableName VARCHAR(100),
+    RecordID INT,
+    OldValue JSON,
+    NewValue JSON,
+    IPAddress VARCHAR(50),
+    MachineName VARCHAR(100),
+    LogDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE SET NULL
+);
+
+-- Notifications
+CREATE TABLE Notifications (
+    NotificationID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Message TEXT NOT NULL,
+    NotificationType VARCHAR(50),
+    IsRead BOOLEAN DEFAULT FALSE,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ExpiryDate DATETIME,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+-- ============================================
+-- 10. INDEXES FOR PERFORMANCE
+-- ============================================
+
+-- Patients Indexes
+CREATE INDEX idx_patients_patientcode ON Patients(PatientCode);
+CREATE INDEX idx_patients_name ON Patients(LastName, FirstName);
+CREATE INDEX idx_patients_dob ON Patients(DateOfBirth);
+
+-- Appointments Indexes
+CREATE INDEX idx_appointments_patient ON Appointments(PatientID);
+CREATE INDEX idx_appointments_doctor ON Appointments(DoctorID);
+CREATE INDEX idx_appointments_date_status ON Appointments(AppointmentDate, Status);
+CREATE INDEX idx_appointments_doctor_date ON Appointments(DoctorID, AppointmentDate, AppointmentTime);
+
+-- Users Indexes
+CREATE INDEX idx_users_username ON Users(Username);
+CREATE INDEX idx_users_role ON Users(RoleID, IsActive);
+
+-- Doctors Indexes
+CREATE INDEX idx_doctors_specialization ON Doctors(SpecializationID);
+CREATE INDEX idx_doctors_available ON Doctors(IsAvailable);
+
+-- Invoices Indexes
+CREATE INDEX idx_invoices_patient ON Invoices(PatientID);
+CREATE INDEX idx_invoices_status ON Invoices(Status);
+CREATE INDEX idx_invoices_date ON Invoices(InvoiceDate);
+
+-- Visits Indexes
+CREATE INDEX idx_visits_patient ON Visits(PatientID);
+CREATE INDEX idx_visits_doctor ON Visits(DoctorID);
+CREATE INDEX idx_visits_date ON Visits(VisitDate);
+
+-- Admissions Indexes
+CREATE INDEX idx_admissions_patient ON Admissions(PatientID);
+CREATE INDEX idx_admissions_status ON Admissions(Status);
+CREATE INDEX idx_admissions_date ON Admissions(AdmissionDate);
+
+-- Inventory Indexes
+CREATE INDEX idx_inventory_expiry ON Inventory(ExpiryDate);
+CREATE INDEX idx_inventory_medicine ON Inventory(MedicineID);
+CREATE INDEX idx_inventory_quantity ON Inventory(Quantity);
+
+-- ============================================
+-- 11. SAMPLE DATA INSERTION
+-- ============================================
+
+-- Insert User Roles
+INSERT INTO UserRoles (RoleName, Description) VALUES
+('Administrator', 'Full system access'),
+('Doctor', 'Medical staff with patient care access'),
+('Nurse', 'Nursing staff with limited access'),
+('Receptionist', 'Front desk and appointment management'),
+('Pharmacist', 'Pharmacy management'),
+('Lab Technician', 'Laboratory test management'),
+('Accountant', 'Billing and financial management'),
+('HR Manager', 'Human resources management');
+
+-- Insert System Users (password: 'admin123' hashed)
+INSERT INTO Users (Username, PasswordHash, Email, RoleID) VALUES
+('admin', '$2a$12$LQv3c1yqB3CdeL4gGgGgT.E3QY9Y4W9zYbJ9cZ8vYbJ9cZ8vYbJ9c', 'admin@hospital.com', 1),
+('dr.smith', '$2a$12$LQv3c1yqB3CdeL4gGgGgT.E3QY9Y4W9zYbJ9cZ8vYbJ9cZ8vYbJ9c', 'dr.smith@hospital.com', 2),
+('dr.jones', '$2a$12$LQv3c1yqB3CdeL4gGgGgT.E3QY9Y4W9zYbJ9cZ8vYbJ9cZ8vYbJ9c', 'dr.jones@hospital.com', 2),
+('nurse.mary', '$2a$12$LQv3c1yqB3CdeL4gGgGgT.E3QY9Y4W9zYbJ9cZ8vYbJ9cZ8vYbJ9c', 'nurse.mary@hospital.com', 3),
+('reception.john', '$2a$12$LQv3c1yqB3CdeL4gGgGgT.E3QY9Y4W9zYbJ9cZ8vYbJ9cZ8vYbJ9c', 'reception@hospital.com', 4);
+
+-- Insert User Details
+INSERT INTO UserDetails (UserID, FirstName, LastName, DateOfBirth, Gender, ContactNumber) VALUES
+(1, 'System', 'Administrator', '1980-01-01', 'M', '+1234567890'),
+(2, 'John', 'Smith', '1975-05-15', 'M', '+1234567891'),
+(3, 'Sarah', 'Jones', '1982-08-20', 'F', '+1234567892'),
+(4, 'Mary', 'Johnson', '1990-03-10', 'F', '+1234567893'),
+(5, 'John', 'Doe', '1988-11-25', 'M', '+1234567894');
+
+-- Insert Specializations
+INSERT INTO Specializations (SpecializationCode, SpecializationName, Department) VALUES
+('CARD', 'Cardiology', 'Cardiology'),
+('NEURO', 'Neurology', 'Neurology'),
+('ORTHO', 'Orthopedics', 'Orthopedics'),
+('PED', 'Pediatrics', 'Pediatrics'),
+('GYN', 'Gynecology', 'Gynecology'),
+('DERMA', 'Dermatology', 'Dermatology'),
+('ENT', 'ENT', 'ENT'),
+('GEN', 'General Medicine', 'Medicine'),
+('SURG', 'General Surgery', 'Surgery'),
+('PSY', 'Psychiatry', 'Psychiatry');
+
+-- Insert Doctors
+INSERT INTO Doctors (UserID, DoctorCode, SpecializationID, Qualification, LicenseNumber, ConsultationFee) VALUES
+(2, 'D-001', 1, 'MD Cardiology', 'LIC12345', 50.00),
+(3, 'D-002', 3, 'MS Orthopedics', 'LIC12346', 60.00);
+
+-- Insert Doctor Schedules
+INSERT INTO DoctorSchedules (DoctorID, DayOfWeek, StartTime, EndTime, MaxAppointments) VALUES
+(1, 1, '09:00:00', '13:00:00', 15),  -- Monday morning
+(1, 1, '14:00:00', '18:00:00', 15),  -- Monday afternoon
+(1, 3, '09:00:00', '13:00:00', 15),  -- Wednesday morning
+(2, 2, '10:00:00', '14:00:00', 12),  -- Tuesday
+(2, 4, '10:00:00', '14:00:00', 12);  -- Thursday
+
+-- Insert Staff
+INSERT INTO Staff (UserID, StaffCode, Designation, Department, Shift, Salary) VALUES
+(4, 'S-001', 'Head Nurse', 'Emergency', 'Day', 3500.00),
+(5, 'S-002', 'Receptionist', 'Front Desk', 'Day', 2500.00);
+
+-- Insert Service Categories
+INSERT INTO ServiceCategories (CategoryName, Description) VALUES
+('Consultation', 'Doctor consultation fees'),
+('Laboratory', 'Lab tests and diagnostics'),
+('Pharmacy', 'Medicines and drugs'),
+('Room Charges', 'Hospital room charges'),
+('Procedure', 'Medical procedures'),
+('Emergency', 'Emergency services'),
+('Diagnostics', 'Diagnostic services'),
+('Others', 'Other services');
+
+-- Insert Services
+INSERT INTO Services (ServiceCode, ServiceName, CategoryID, Price, TaxRate) VALUES
+('CON-GEN', 'General Consultation', 1, 30.00, 0.00),
+('CON-SPEC', 'Specialist Consultation', 1, 50.00, 0.00),
+('LAB-CBC', 'Complete Blood Count', 2, 25.00, 5.00),
+('LAB-URINE', 'Urine Analysis', 2, 15.00, 5.00),
+('ROOM-GEN', 'General Ward - Per Day', 4, 100.00, 10.00),
+('ROOM-PVT', 'Private Room - Per Day', 4, 200.00, 10.00),
+('EMG-BASIC', 'Basic Emergency', 6, 150.00, 0.00),
+('XRAY-CHEST', 'Chest X-Ray', 7, 80.00, 5.00);
+
+-- Insert Medicine Categories
+INSERT INTO MedicineCategories (CategoryName, Description) VALUES
+('Antibiotics', 'Antibacterial medications'),
+('Analgesics', 'Pain relievers'),
+('Antipyretics', 'Fever reducers'),
+('Antihistamines', 'Allergy medications'),
+('Cardiovascular', 'Heart and blood pressure medications'),
+('Gastrointestinal', 'Stomach and digestive medications'),
+('Vitamins', 'Vitamins and supplements'),
+('Diabetes', 'Diabetes medications'),
+('Respiratory', 'Asthma and respiratory medications');
+
+-- Insert Medicines
+INSERT INTO Medicines (MedicineCode, MedicineName, GenericName, CategoryID, Manufacturer, UnitOfMeasure, UnitPrice, SellingPrice, ReorderLevel) VALUES
+('MED-001', 'Paracetamol 500mg', 'Paracetamol', 3, 'Generic Pharma', 'Tablet', 0.10, 0.50, 1000),
+('MED-002', 'Amoxicillin 250mg', 'Amoxicillin', 1, 'Generic Pharma', 'Capsule', 0.20, 1.00, 500),
+('MED-003', 'Ibuprofen 400mg', 'Ibuprofen', 2, 'Generic Pharma', 'Tablet', 0.15, 0.75, 800),
+('MED-004', 'Cetirizine 10mg', 'Cetirizine', 4, 'Generic Pharma', 'Tablet', 0.25, 1.25, 300),
+('MED-005', 'Vitamin C 500mg', 'Ascorbic Acid', 7, 'Generic Pharma', 'Tablet', 0.08, 0.40, 1500),
+('MED-006', 'Metformin 500mg', 'Metformin', 8, 'Generic Pharma', 'Tablet', 0.12, 0.60, 600),
+('MED-007', 'Salbutamol Inhaler', 'Salbutamol', 9, 'Generic Pharma', 'Inhaler', 2.50, 12.50, 100),
+('MED-008', 'Omeprazole 20mg', 'Omeprazole', 6, 'Generic Pharma', 'Capsule', 0.30, 1.50, 400);
+
+-- Insert Inventory
+INSERT INTO Inventory (MedicineID, BatchNumber, ExpiryDate, Quantity, PurchasePrice, SellingPrice, Supplier) VALUES
+(1, 'BATCH-001', '2025-12-31', 5000, 0.08, 0.50, 'Pharma Supply Co.'),
+(2, 'BATCH-002', '2024-06-30', 2500, 0.18, 1.00, 'Pharma Supply Co.'),
+(3, 'BATCH-003', '2025-09-30', 4000, 0.12, 0.75, 'Medi Distributors'),
+(4, 'BATCH-004', '2024-11-30', 1500, 0.20, 1.25, 'Health Suppliers'),
+(5, 'BATCH-005', '2026-03-31', 8000, 0.06, 0.40, 'Vitamin Corp'),
+(6, 'BATCH-006', '2025-08-31', 3000, 0.10, 0.60, 'Diabetes Meds Inc.'),
+(7, 'BATCH-007', '2024-12-31', 500, 2.00, 12.50, 'Respiratory Pharma'),
+(8, 'BATCH-008', '2025-05-31', 2000, 0.25, 1.50, 'GI Pharmaceuticals');
+
+-- Insert Lab Tests
+INSERT INTO LabTests (TestCode, TestName, Category, NormalRange, Unit, Price) VALUES
+('LAB-001', 'Complete Blood Count', 'Hematology', 'Varies', 'N/A', 25.00),
+('LAB-002', 'Blood Glucose Fasting', 'Biochemistry', '70-100', 'mg/dL', 10.00),
+('LAB-003', 'Lipid Profile', 'Biochemistry', 'Varies', 'mg/dL', 30.00),
+('LAB-004', 'Liver Function Test', 'Biochemistry', 'Varies', 'U/L', 40.00),
+('LAB-005', 'Urine Analysis', 'Urine', 'Varies', 'N/A', 15.00),
+('LAB-006', 'Thyroid Profile', 'Hormones', 'Varies', 'µIU/mL', 50.00),
+('LAB-007', 'HIV Test', 'Serology', 'Negative', 'N/A', 35.00),
+('LAB-008', 'COVID-19 PCR', 'Microbiology', 'Negative', 'N/A', 75.00),
+('LAB-009', 'Hemoglobin A1c', 'Diabetes', '4.0-5.6', '%', 20.00),
+('LAB-010', 'Creatinine', 'Kidney', '0.6-1.2', 'mg/dL', 12.00);
+
+-- Insert Wards
+INSERT INTO Wards (WardCode, WardName, WardType, TotalBeds, AvailableBeds, ChargePerDay) VALUES
+('WARD-001', 'General Ward A', 'General', 30, 30, 100.00),
+('WARD-002', 'General Ward B', 'General', 25, 25, 100.00),
+('WARD-003', 'Private Ward', 'Private', 15, 15, 200.00),
+('WARD-004', 'ICU', 'ICU', 10, 10, 500.00),
+('WARD-005', 'Maternity Ward', 'Maternity', 20, 20, 150.00),
+('WARD-006', 'Pediatric Ward', 'Pediatric', 18, 18, 120.00),
+('WARD-007', 'Isolation Ward', 'Isolation', 8, 8, 250.00),
+('WARD-008', 'Post-Op Ward', 'Post-Operative', 12, 12, 180.00);
+
+-- Insert Rooms
+INSERT INTO Rooms (RoomNumber, WardID, RoomType, TotalBeds, AvailableBeds, RatePerDay) VALUES
+('101', 1, 'General', 4, 4, 100.00),
+('102', 1, 'General', 4, 4, 100.00),
+('201', 2, 'General', 3, 3, 100.00),
+('301', 3, 'Private', 1, 1, 200.00),
+('302', 3, 'Private', 1, 1, 200.00),
+('401', 4, 'ICU', 1, 1, 500.00),
+('501', 5, 'Maternity', 2, 2, 150.00);
+
+-- Insert System Settings
+INSERT INTO SystemSettings (SettingKey, SettingValue, Description, Category) VALUES
+('HospitalName', 'General Hospital', 'Name of the hospital', 'General'),
+('HospitalAddress', '123 Medical Street, Health City', 'Hospital address', 'General'),
+('HospitalPhone', '+1 (234) 567-8900', 'Hospital contact number', 'General'),
+('HospitalEmail', 'info@generalhospital.com', 'Hospital email', 'General'),
+('Currency', 'USD', 'Default currency', 'Financial'),
+('TaxRate', '10.00', 'Default tax rate percentage', 'Financial'),
+('AppointmentDuration', '15', 'Default appointment duration in minutes', 'Appointments'),
+('MaxAppointmentsPerDay', '30', 'Maximum appointments per doctor per day', 'Appointments'),
+('AutoGeneratePatientCode', 'true', 'Auto generate patient codes', 'System'),
+('AutoGenerateInvoice', 'true', 'Auto generate invoice numbers', 'System'),
+('DateFormat', 'yyyy-MM-dd', 'Date format', 'System'),
+('TimeFormat', 'HH:mm:ss', 'Time format', 'System'),
+('BackupPath', 'C:\HospitalBackups', 'Database backup path', 'System'),
+('BackupFrequency', 'daily', 'Backup frequency', 'System'),
+('SessionTimeout', '30', 'Session timeout in minutes', 'Security'),
+('PasswordExpiryDays', '90', 'Password expiry in days', 'Security'),
+('MinPasswordLength', '8', 'Minimum password length', 'Security'),
+('MaxLoginAttempts', '3', 'Maximum login attempts before lock', 'Security'),
+('LockoutDuration', '30', 'Account lockout duration in minutes', 'Security'),
+('EmailNotifications', 'true', 'Enable email notifications', 'Notifications'),
+('SMSNotifications', 'false', 'Enable SMS notifications', 'Notifications'),
+('AppointmentReminderHours', '24', 'Appointment reminder hours before', 'Notifications'),
+('PharmacyLowStockThreshold', '20', 'Low stock threshold percentage', 'Inventory'),
+('LabResultTimeoutHours', '48', 'Lab result timeout in hours', 'Laboratory'),
+('InvoiceDueDays', '30', 'Invoice due days', 'Billing');
+
+-- Insert Sample Patients
+INSERT INTO Patients (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, ContactNumber, RegistrationDate) VALUES
+('P-2024-001', 'John', 'Doe', '1985-06-15', 'M', 'O+', '+12345678901', '2024-01-15 09:30:00'),
+('P-2024-002', 'Jane', 'Smith', '1990-03-22', 'F', 'A+', '+12345678902', '2024-01-16 10:15:00'),
+('P-2024-003', 'Robert', 'Johnson', '1978-11-05', 'M', 'B+', '+12345678903', '2024-01-17 11:00:00'),
+('P-2024-004', 'Sarah', 'Williams', '1982-09-18', 'F', 'AB+', '+12345678904', '2024-01-18 14:20:00'),
+('P-2024-005', 'Michael', 'Brown', '1995-12-30', 'M', 'O-', '+12345678905', '2024-01-19 15:45:00');
+
+-- Insert Patient Contacts
+INSERT INTO PatientContacts (PatientID, ContactType, ContactValue, IsPrimary) VALUES
+(1, 'Phone', '+12345678901', TRUE),
+(1, 'Email', 'john.doe@email.com', FALSE),
+(2, 'Phone', '+12345678902', TRUE),
+(3, 'Phone', '+12345678903', TRUE),
+(4, 'Phone', '+12345678904', TRUE),
+(5, 'Phone', '+12345678905', TRUE);
+
+-- Insert Medical Histories
+INSERT INTO MedicalHistories (PatientID, HistoryType, Description, DiagnosisDate, Severity, RecordedBy) VALUES
+(1, 'Allergy', 'Peanut Allergy', '2020-05-10', 'Severe', 2),
+(1, 'Chronic Disease', 'Hypertension', '2019-03-15', 'Moderate', 2),
+(2, 'Surgery', 'Appendectomy', '2018-07-20', 'N/A', 2),
+(3, 'Chronic Disease', 'Type 2 Diabetes', '2017-11-30', 'Moderate', 2),
+(4, 'Allergy', 'Penicillin Allergy', '2021-02-14', 'Mild', 2);
+
+-- ============================================
+-- 12. STORED PROCEDURES
+-- ============================================
+
+-- Stored Procedure: Register New Patient
+DELIMITER //
+CREATE PROCEDURE RegisterPatient(
+    IN pFirstName VARCHAR(50),
+    IN pLastName VARCHAR(50),
+    IN pDateOfBirth DATE,
+    IN pGender ENUM('M', 'F', 'O'),
+    IN pBloodGroup VARCHAR(5),
+    IN pContactNumber VARCHAR(20)
+)
+BEGIN
+    DECLARE vPatientCode VARCHAR(20);
+    DECLARE vYear INT;
+    DECLARE vNextID INT;
+    
+    SET vYear = YEAR(CURRENT_DATE);
+    
+    -- Generate Patient Code
+    SELECT COALESCE(MAX(SUBSTRING(PatientCode, 10)), 0) + 1 INTO vNextID
+    FROM Patients 
+    WHERE PatientCode LIKE CONCAT('P-', vYear, '-%');
+    
+    SET vPatientCode = CONCAT('P-', vYear, '-', LPAD(vNextID, 3, '0'));
+    
+    -- Insert Patient
+    INSERT INTO Patients (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, RegistrationDate)
+    VALUES (vPatientCode, pFirstName, pLastName, pDateOfBirth, pGender, pBloodGroup, CURRENT_TIMESTAMP);
+    
+    -- Insert Contact
+    SET @patientID = LAST_INSERT_ID();
+    
+    INSERT INTO PatientContacts (PatientID, ContactType, ContactValue, IsPrimary)
+    VALUES (@patientID, 'Phone', pContactNumber, TRUE);
+    
+    SELECT @patientID AS PatientID, vPatientCode AS PatientCode;
+END //
+DELIMITER ;
+
+-- Stored Procedure: Create Appointment
+DELIMITER //
+CREATE PROCEDURE CreateAppointment(
+    IN pPatientID INT,
+    IN pDoctorID INT,
+    IN pAppointmentDate DATE,
+    IN pAppointmentTime TIME,
+    IN pAppointmentType ENUM('Consultation', 'Follow-up', 'Emergency', 'Check-up'),
+    IN pReason VARCHAR(500),
+    IN pCreatedBy INT
+)
+BEGIN
+    DECLARE vAppointmentCode VARCHAR(20);
+    DECLARE vYear INT;
+    DECLARE vNextID INT;
+    DECLARE vDoctorAvailable BOOLEAN;
+    DECLARE vOverlappingAppointments INT;
+    
+    SET vYear = YEAR(CURRENT_DATE);
+    
+    -- Generate Appointment Code
+    SELECT COALESCE(MAX(SUBSTRING(AppointmentCode, 10)), 0) + 1 INTO vNextID
+    FROM Appointments 
+    WHERE AppointmentCode LIKE CONCAT('APP-', vYear, '-%');
+    
+    SET vAppointmentCode = CONCAT('APP-', vYear, '-', LPAD(vNextID, 3, '0'));
+    
+    -- Check doctor availability
+    SELECT EXISTS (
+        SELECT 1 FROM DoctorSchedules ds 
+        WHERE ds.DoctorID = pDoctorID 
+        AND DAYOFWEEK(pAppointmentDate) = ds.DayOfWeek
+        AND pAppointmentTime BETWEEN ds.StartTime AND ds.EndTime
+        AND ds.IsActive = TRUE
+    ) INTO vDoctorAvailable;
+    
+    -- Check for overlapping appointments
+    SELECT COUNT(*) INTO vOverlappingAppointments
+    FROM Appointments a
+    WHERE a.DoctorID = pDoctorID
+    AND a.AppointmentDate = pAppointmentDate
+    AND a.AppointmentTime = pAppointmentTime
+    AND a.Status IN ('Scheduled', 'Confirmed');
+    
+    IF vDoctorAvailable = TRUE AND vOverlappingAppointments = 0 THEN
+        INSERT INTO Appointments (AppointmentCode, PatientID, DoctorID, AppointmentDate, 
+                                 AppointmentTime, AppointmentType, Reason, CreatedBy)
+        VALUES (vAppointmentCode, pPatientID, pDoctorID, pAppointmentDate, 
+               pAppointmentTime, pAppointmentType, pReason, pCreatedBy);
+        
+        SELECT LAST_INSERT_ID() AS AppointmentID, vAppointmentCode AS AppointmentCode;
+    ELSE
+        IF vDoctorAvailable = FALSE THEN
+            SELECT -1 AS AppointmentID, 'Doctor not available at this time' AS ErrorMessage;
+        ELSE
+            SELECT -1 AS AppointmentID, 'Doctor has overlapping appointment' AS ErrorMessage;
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+-- Stored Procedure: Generate Invoice
+DELIMITER //
+CREATE PROCEDURE GenerateInvoice(
+    IN pPatientID INT,
+    IN pAppointmentID INT,
+    IN pCreatedBy INT
+)
+BEGIN
+    DECLARE vInvoiceNumber VARCHAR(30);
+    DECLARE vYear INT;
+    DECLARE vNextID INT;
+    
+    SET vYear = YEAR(CURRENT_DATE);
+    
+    -- Generate Invoice Number
+    SELECT COALESCE(MAX(SUBSTRING(InvoiceNumber, 10)), 0) + 1 INTO vNextID
+    FROM Invoices 
+    WHERE InvoiceNumber LIKE CONCAT('INV-', vYear, '-%');
+    
+    SET vInvoiceNumber = CONCAT('INV-', vYear, '-', LPAD(vNextID, 3, '0'));
+    
+    -- Insert Invoice Header
+    INSERT INTO Invoices (InvoiceNumber, PatientID, AppointmentID, InvoiceDate, DueDate, CreatedBy)
+    VALUES (vInvoiceNumber, pPatientID, pAppointmentID, CURRENT_TIMESTAMP, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), pCreatedBy);
+    
+    SELECT LAST_INSERT_ID() AS InvoiceID, vInvoiceNumber AS InvoiceNumber;
+END //
+DELIMITER ;
+
+-- Stored Procedure: Process Payment
+DELIMITER //
+CREATE PROCEDURE ProcessPayment(
+    IN pInvoiceID INT,
+    IN pPaymentMethod ENUM('Cash', 'Credit Card', 'Debit Card', 'Insurance', 'Online'),
+    IN pAmount DECIMAL(10,2),
+    IN pReferenceNumber VARCHAR(100),
+    IN pReceivedBy INT
+)
+BEGIN
+    DECLARE vPaymentNumber VARCHAR(30);
+    DECLARE vYear INT;
+    DECLARE vNextID INT;
+    DECLARE vInvoiceTotal DECIMAL(10,2);
+    DECLARE vAmountPaid DECIMAL(10,2);
+    DECLARE vNewStatus VARCHAR(20);
+    
+    SET vYear = YEAR(CURRENT_DATE);
+    
+    -- Generate Payment Number
+    SELECT COALESCE(MAX(SUBSTRING(PaymentNumber, 10)), 0) + 1 INTO vNextID
+    FROM Payments 
+    WHERE PaymentNumber LIKE CONCAT('PAY-', vYear, '-%');
+    
+    SET vPaymentNumber = CONCAT('PAY-', vYear, '-', LPAD(vNextID, 3, '0'));
+    
+    -- Get invoice total and paid amount
+    SELECT GrandTotal INTO vInvoiceTotal FROM Invoices WHERE InvoiceID = pInvoiceID;
+    SELECT COALESCE(SUM(Amount), 0) INTO vAmountPaid FROM Payments WHERE InvoiceID = pInvoiceID;
+    
+    -- Calculate new status
+    IF (vAmountPaid + pAmount) >= vInvoiceTotal THEN
+        SET vNewStatus = 'Paid';
+    ELSEIF (vAmountPaid + pAmount) > 0 THEN
+        SET vNewStatus = 'Partial';
+    ELSE
+        SET vNewStatus = 'Pending';
+    END IF;
+    
+    -- Insert Payment
+    INSERT INTO Payments (PaymentNumber, InvoiceID, PaymentDate, PaymentMethod, Amount, ReferenceNumber, ReceivedBy)
+    VALUES (vPaymentNumber, pInvoiceID, CURRENT_TIMESTAMP, pPaymentMethod, pAmount, pReferenceNumber, pReceivedBy);
+    
+    -- Update Invoice Status
+    UPDATE Invoices SET Status = vNewStatus WHERE InvoiceID = pInvoiceID;
+    
+    SELECT LAST_INSERT_ID() AS PaymentID, vPaymentNumber AS PaymentNumber, vNewStatus AS InvoiceStatus;
+END //
+DELIMITER ;
+
+-- Stored Procedure: Get Patient Dashboard Data
+DELIMITER //
+CREATE PROCEDURE GetPatientDashboard(IN pPatientID INT)
+BEGIN
+    -- Patient Info
+    SELECT * FROM Patients WHERE PatientID = pPatientID;
+    
+    -- Recent Appointments
+    SELECT a.*, 
+           CONCAT(d.UserDetails_FirstName, ' ', d.UserDetails_LastName) AS DoctorName,
+           s.SpecializationName
+    FROM Appointments a
+    LEFT JOIN Doctors doc ON a.DoctorID = doc.DoctorID
+    LEFT JOIN Users u ON doc.UserID = u.UserID
+    LEFT JOIN UserDetails d ON u.UserID = d.UserID
+    LEFT JOIN Specializations s ON doc.SpecializationID = s.SpecializationID
+    WHERE a.PatientID = pPatientID
+    ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC
+    LIMIT 5;
+    
+    -- Recent Visits
+    SELECT v.*, 
+           CONCAT(d.UserDetails_FirstName, ' ', d.UserDetails_LastName) AS DoctorName
+    FROM Visits v
+    LEFT JOIN Doctors doc ON v.DoctorID = doc.DoctorID
+    LEFT JOIN Users u ON doc.UserID = u.UserID
+    LEFT JOIN UserDetails d ON u.UserID = d.UserID
+    WHERE v.PatientID = pPatientID
+    ORDER BY v.VisitDate DESC
+    LIMIT 5;
+    
+    -- Unpaid Invoices
+    SELECT * FROM Invoices 
+    WHERE PatientID = pPatientID AND Status != 'Paid'
+    ORDER BY InvoiceDate DESC
+    LIMIT 5;
+END //
+DELIMITER ;
+
+-- ============================================
+-- 13. VIEWS
+-- ============================================
+
+-- View: Patient Summary
+CREATE VIEW PatientSummary AS
+SELECT 
+    p.PatientID,
+    p.PatientCode,
+    CONCAT(p.FirstName, ' ', p.LastName) AS FullName,
+    p.DateOfBirth,
+    p.Gender,
+    p.BloodGroup,
+    TIMESTAMPDIFF(YEAR, p.DateOfBirth, CURDATE()) AS Age,
+    p.RegistrationDate,
+    (SELECT COUNT(*) FROM Appointments a WHERE a.PatientID = p.PatientID) AS TotalAppointments,
+    (SELECT COUNT(*) FROM Visits v WHERE v.PatientID = p.PatientID) AS TotalVisits,
+    (SELECT SUM(GrandTotal) FROM Invoices i WHERE i.PatientID = p.PatientID AND i.Status = 'Paid') AS TotalPaid,
+    (SELECT ContactValue FROM PatientContacts pc WHERE pc.PatientID = p.PatientID AND pc.IsPrimary = TRUE LIMIT 1) AS PrimaryContact
+FROM Patients p;
+
+-- View: Doctor Schedule View
+CREATE VIEW DoctorScheduleView AS
+SELECT 
+    d.DoctorID,
+    d.DoctorCode,
+    CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName,
+    s.SpecializationName,
+    s.Department,
+    ds.DayOfWeek,
+    DAYNAME(STR_TO_DATE(CONCAT('2024-01-', ds.DayOfWeek), '%Y-%m-%W')) AS DayName,
+    ds.StartTime,
+    ds.EndTime,
+    ds.MaxAppointments,
+    (SELECT COUNT(*) FROM Appointments a 
+     WHERE a.DoctorID = d.DoctorID 
+     AND a.AppointmentDate = CURDATE()
+     AND a.Status IN ('Scheduled', 'Confirmed')) AS TodayAppointments,
+    d.ConsultationFee
+FROM Doctors d
+INNER JOIN Users u ON d.UserID = u.UserID
+INNER JOIN UserDetails ud ON u.UserID = ud.UserID
+INNER JOIN Specializations s ON d.SpecializationID = s.SpecializationID
+LEFT JOIN DoctorSchedules ds ON d.DoctorID = ds.DoctorID
+WHERE d.IsAvailable = TRUE AND ds.IsActive = TRUE;
+
+-- View: Room Availability
+CREATE VIEW RoomAvailability AS
+SELECT 
+    w.WardID,
+    w.WardName,
+    w.WardType,
+    r.RoomID,
+    r.RoomNumber,
+    r.RoomType,
+    r.TotalBeds,
+    r.AvailableBeds,
+    r.Status,
+    (SELECT COUNT(*) FROM BedAllocations ba 
+     WHERE ba.RoomID = r.RoomID AND ba.Status = 'Occupied') AS OccupiedBeds,
+    r.RatePerDay,
+    w.ChargePerDay AS WardChargePerDay
+FROM Rooms r
+INNER JOIN Wards w ON r.WardID = w.WardID
+WHERE w.IsActive = TRUE
+ORDER BY w.WardName, r.RoomNumber;
+
+-- View: Pharmacy Stock Alert
+CREATE VIEW PharmacyStockAlert AS
+SELECT 
+    m.MedicineID,
+    m.MedicineCode,
+    m.MedicineName,
+    m.GenericName,
+    mc.CategoryName,
+    SUM(i.Quantity) AS TotalStock,
+    m.ReorderLevel,
+    CASE 
+        WHEN SUM(i.Quantity) <= m.ReorderLevel THEN 'CRITICAL'
+        WHEN SUM(i.Quantity) <= (m.ReorderLevel * 2) THEN 'LOW'
+        ELSE 'OK'
+    END AS StockStatus,
+    MIN(i.ExpiryDate) AS EarliestExpiry,
+    DATEDIFF(MIN(i.ExpiryDate), CURDATE()) AS DaysToExpiry
+FROM Medicines m
+LEFT JOIN Inventory i ON m.MedicineID = i.MedicineID
+LEFT JOIN MedicineCategories mc ON m.CategoryID = mc.CategoryID
+WHERE m.IsActive = TRUE
+GROUP BY m.MedicineID, m.MedicineCode, m.MedicineName, m.GenericName, mc.CategoryName, m.ReorderLevel
+HAVING TotalStock IS NOT NULL;
+
+-- View: Today's Appointments
+CREATE VIEW TodaysAppointments AS
+SELECT 
+    a.AppointmentID,
+    a.AppointmentCode,
+    a.AppointmentDate,
+    a.AppointmentTime,
+    a.AppointmentType,
+    a.Status,
+    CONCAT(p.FirstName, ' ', p.LastName) AS PatientName,
+    p.PatientCode,
+    CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName,
+    s.SpecializationName,
+    a.Reason
+FROM Appointments a
+INNER JOIN Patients p ON a.PatientID = p.PatientID
+INNER JOIN Doctors d ON a.DoctorID = d.DoctorID
+INNER JOIN Users u ON d.UserID = u.UserID
+INNER JOIN UserDetails ud ON u.UserID = ud.UserID
+INNER JOIN Specializations s ON d.SpecializationID = s.SpecializationID
+WHERE a.AppointmentDate = CURDATE()
+ORDER BY a.AppointmentTime;
+
+-- ============================================
+-- 14. TRIGGERS
+-- ============================================
+
+-- Trigger: Update Available Beds after Bed Allocation
+DELIMITER //
+CREATE TRIGGER UpdateAvailableBeds
+AFTER INSERT ON BedAllocations
+FOR EACH ROW
+BEGIN
+    -- Update Room Available Beds
+    UPDATE Rooms r
+    SET r.AvailableBeds = r.TotalBeds - 
+        (SELECT COUNT(*) FROM BedAllocations ba 
+         WHERE ba.RoomID = r.RoomID AND ba.Status = 'Occupied')
+    WHERE r.RoomID = NEW.RoomID;
+    
+    -- Update Ward Available Beds
+    UPDATE Wards w
+    SET w.AvailableBeds = (
+        SELECT SUM(r.AvailableBeds) 
+        FROM Rooms r 
+        WHERE r.WardID = w.WardID
+    )
+    WHERE w.WardID = (SELECT WardID FROM Rooms WHERE RoomID = NEW.RoomID);
+END //
+DELIMITER ;
+
+-- Trigger: Update Available Beds after Bed Discharge
+DELIMITER //
+CREATE TRIGGER UpdateAvailableBedsOnDischarge
+AFTER UPDATE ON BedAllocations
+FOR EACH ROW
+BEGIN
+    IF OLD.Status = 'Occupied' AND NEW.Status != 'Occupied' THEN
+        -- Update Room Available Beds
+        UPDATE Rooms r
+        SET r.AvailableBeds = r.TotalBeds - 
+            (SELECT COUNT(*) FROM BedAllocations ba 
+             WHERE ba.RoomID = r.RoomID AND ba.Status = 'Occupied')
+        WHERE r.RoomID = NEW.RoomID;
+        
+        -- Update Ward Available Beds
+        UPDATE Wards w
+        SET w.AvailableBeds = (
+            SELECT SUM(r.AvailableBeds) 
+            FROM Rooms r 
+            WHERE r.WardID = w.WardID
+        )
+        WHERE w.WardID = (SELECT WardID FROM Rooms WHERE RoomID = NEW.RoomID);
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger: Update Inventory after Pharmacy Sale
+DELIMITER //
+CREATE TRIGGER UpdateInventoryAfterSale
+AFTER INSERT ON PharmacySaleDetails
+FOR EACH ROW
+BEGIN
+    UPDATE Inventory i
+    SET i.Quantity = i.Quantity - NEW.Quantity
+    WHERE i.MedicineID = NEW.MedicineID 
+    AND i.BatchNumber = NEW.BatchNumber
+    AND i.Quantity >= NEW.Quantity;
+END //
+DELIMITER ;
+
+-- Trigger: Log Appointment Status Changes
+DELIMITER //
+CREATE TRIGGER LogAppointmentChanges
+AFTER UPDATE ON Appointments
+FOR EACH ROW
+BEGIN
+    IF OLD.Status != NEW.Status THEN
+        INSERT INTO AppointmentHistory (AppointmentID, Status, ChangedBy, Notes)
+        VALUES (NEW.AppointmentID, NEW.Status, NEW.CreatedBy, CONCAT('Status changed from ', OLD.Status, ' to ', NEW.Status));
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger: Auto-update Invoice Totals
+DELIMITER //
+CREATE TRIGGER UpdateInvoiceTotals
+AFTER INSERT ON InvoiceDetails
+FOR EACH ROW
+BEGIN
+    DECLARE vTotal DECIMAL(10,2);
+    DECLARE vTaxRate DECIMAL(5,2);
+    DECLARE vTaxAmount DECIMAL(10,2);
+    DECLARE vGrandTotal DECIMAL(10,2);
+    
+    -- Calculate totals
+    SELECT SUM(id.TotalPrice) INTO vTotal
+    FROM InvoiceDetails id
+    WHERE id.InvoiceID = NEW.InvoiceID;
+    
+    -- Get tax rate (assuming single tax rate for simplicity)
+    SELECT TaxRate INTO vTaxRate FROM Services WHERE ServiceID = NEW.ServiceID LIMIT 1;
+    
+    SET vTaxAmount = vTotal * (COALESCE(vTaxRate, 0) / 100);
+    SET vGrandTotal = vTotal + vTaxAmount;
+    
+    -- Update invoice
+    UPDATE Invoices 
+    SET TotalAmount = COALESCE(vTotal, 0),
+        TaxAmount = COALESCE(vTaxAmount, 0),
+        GrandTotal = COALESCE(vGrandTotal, 0)
+    WHERE InvoiceID = NEW.InvoiceID;
+END //
+DELIMITER ;
+
+-- ============================================
+-- 15. FUNCTIONS
+-- ============================================
+
+-- Function: Generate Next Patient Code
+DELIMITER //
+CREATE FUNCTION GeneratePatientCode() RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    DECLARE vYear INT;
+    DECLARE vNextID INT;
+    DECLARE vPatientCode VARCHAR(20);
+    
+    SET vYear = YEAR(CURRENT_DATE);
+    
+    SELECT COALESCE(MAX(SUBSTRING(PatientCode, 10)), 0) + 1 INTO vNextID
+    FROM Patients 
+    WHERE PatientCode LIKE CONCAT('P-', vYear, '-%');
+    
+    SET vPatientCode = CONCAT('P-', vYear, '-', LPAD(vNextID, 3, '0'));
+    
+    RETURN vPatientCode;
+END //
+DELIMITER ;
+
+-- Function: Calculate Patient Age
+DELIMITER //
+CREATE FUNCTION CalculateAge(dateOfBirth DATE) RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, dateOfBirth, CURDATE());
+END //
+DELIMITER ;
+
+-- Function: Check Doctor Availability
+DELIMITER //
+CREATE FUNCTION CheckDoctorAvailability(
+    pDoctorID INT,
+    pDate DATE,
+    pTime TIME
+) RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE vAvailable BOOLEAN;
+    
+    SELECT EXISTS (
+        SELECT 1 FROM DoctorSchedules ds 
+        WHERE ds.DoctorID = pDoctorID 
+        AND DAYOFWEEK(pDate) = ds.DayOfWeek
+        AND pTime BETWEEN ds.StartTime AND ds.EndTime
+        AND ds.IsActive = TRUE
+    ) INTO vAvailable;
+    
+    RETURN vAvailable;
+END //
+DELIMITER ;
+
+-- Function: Get Patient Outstanding Balance
+DELIMITER //
+CREATE FUNCTION GetPatientBalance(pPatientID INT) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE vTotalInvoices DECIMAL(10,2);
+    DECLARE vTotalPayments DECIMAL(10,2);
+    DECLARE vBalance DECIMAL(10,2);
+    
+    -- Get total invoice amount (excluding paid invoices)
+    SELECT COALESCE(SUM(GrandTotal), 0) INTO vTotalInvoices
+    FROM Invoices 
+    WHERE PatientID = pPatientID AND Status != 'Paid';
+    
+    -- Get total payments for unpaid invoices
+    SELECT COALESCE(SUM(p.Amount), 0) INTO vTotalPayments
+    FROM Payments p
+    INNER JOIN Invoices i ON p.InvoiceID = i.InvoiceID
+    WHERE i.PatientID = pPatientID AND i.Status != 'Paid';
+    
+    SET vBalance = vTotalInvoices - vTotalPayments;
+    
+    RETURN COALESCE(vBalance, 0);
+END //
+DELIMITER ;
+
+-- ============================================
+-- 16. EVENT SCHEDULER
+-- ============================================
+
+-- Event: Daily Appointment Reminder (Runs at 8 AM daily)
+DELIMITER //
+CREATE EVENT DailyAppointmentReminder
+ON SCHEDULE EVERY 1 DAY STARTS '2024-01-01 08:00:00'
+DO
+BEGIN
+    -- Insert notifications for tomorrow's appointments
+    INSERT INTO Notifications (UserID, Title, Message, NotificationType)
+    SELECT 
+        u.UserID,
+        'Appointment Reminder',
+        CONCAT('You have an appointment tomorrow at ', a.AppointmentTime, ' with Dr. ', 
+               ud.FirstName, ' ', ud.LastName),
+        'Appointment'
+    FROM Appointments a
+    INNER JOIN Patients p ON a.PatientID = p.PatientID
+    INNER JOIN Users u ON p.PatientCode = u.Username  -- Assuming PatientCode is username
+    INNER JOIN Doctors d ON a.DoctorID = d.DoctorID
+    INNER JOIN Users du ON d.UserID = du.UserID
+    INNER JOIN UserDetails ud ON du.UserID = ud.UserID
+    WHERE a.AppointmentDate = DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+    AND a.Status IN ('Scheduled', 'Confirmed');
+END //
+DELIMITER ;
+
+-- Event: Update Appointment Status to No-Show (Runs hourly)
+DELIMITER //
+CREATE EVENT UpdateNoShowAppointments
+ON SCHEDULE EVERY 1 HOUR
+DO
+BEGIN
+    UPDATE Appointments 
+    SET Status = 'No-show'
+    WHERE AppointmentDate = CURDATE()
+    AND AppointmentTime < DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+    AND Status = 'Scheduled';
+END //
+DELIMITER ;
+
+-- Event: Check Medicine Expiry (Runs weekly)
+DELIMITER //
+CREATE EVENT CheckMedicineExpiry
+ON SCHEDULE EVERY 1 WEEK
+DO
+BEGIN
+    -- Insert notifications for expiring medicines
+    INSERT INTO Notifications (UserID, Title, Message, NotificationType)
+    SELECT 
+        u.UserID,
+        'Medicine Expiry Alert',
+        CONCAT('Medicine ', m.MedicineName, ' (Batch: ', i.BatchNumber, 
+               ') expires on ', i.ExpiryDate),
+        'Inventory'
+    FROM Inventory i
+    INNER JOIN Medicines m ON i.MedicineID = m.MedicineID
+    INNER JOIN Users u ON u.RoleID = 5  -- Pharmacist role
+    WHERE i.ExpiryDate BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+END //
+DELIMITER ;
+
+-- ============================================
+-- 17. USER PRIVILEGES (Adjust based on your security needs)
+-- ============================================
+
+-- Create Database User (Example - adjust password)
+-- CREATE USER 'hospital_user'@'localhost' IDENTIFIED BY 'SecurePass123!';
+
+-- Grant Privileges
+-- GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON HospitalManagementSystem.* TO 'hospital_user'@'localhost';
+-- GRANT CREATE TEMPORARY TABLES ON HospitalManagementSystem.* TO 'hospital_user'@'localhost';
+
+-- ============================================
+-- 18. BACKUP COMMAND (Example for mysqldump)
+-- ============================================
+-- mysqldump -u root -p HospitalManagementSystem > hospital_backup_$(date +%Y%m%d).sql
+
+-- ============================================
+-- 19. FINAL MESSAGES
+-- ============================================
+SELECT 'Hospital Management System Database Created Successfully!' AS Message;
+
+-- Show Database Summary
+SELECT 
+    'Tables Created' AS Item,
+    COUNT(*) AS Count
+FROM information_schema.tables 
+WHERE table_schema = 'HospitalManagementSystem'
+UNION ALL
+SELECT 
+    'Stored Procedures',
+    COUNT(*)
+FROM information_schema.routines 
+WHERE routine_schema = 'HospitalManagementSystem' AND routine_type = 'PROCEDURE'
+UNION ALL
+SELECT 
+    'Functions',
+    COUNT(*)
+FROM information_schema.routines 
+WHERE routine_schema = 'HospitalManagementSystem' AND routine_type = 'FUNCTION'
+UNION ALL
+SELECT 
+    'Views',
+    COUNT(*)
+FROM information_schema.views 
+WHERE table_schema = 'HospitalManagementSystem'
+UNION ALL
+SELECT 
+    'Triggers',
+    COUNT(*)
+FROM information_schema.triggers 
+WHERE trigger_schema = 'HospitalManagementSystem';
+
+-- Show Sample Data Counts
+SELECT 
+    'Patients' AS TableName,
+    COUNT(*) AS RecordCount
+FROM Patients
+UNION ALL
+SELECT 
+    'Doctors',
+    COUNT(*)
+FROM Doctors
+UNION ALL
+SELECT 
+    'Medicines',
+    COUNT(*)
+FROM Medicines
+UNION ALL
+SELECT 
+    'Services',
+    COUNT(*)
+FROM Services
+UNION ALL
+SELECT 
+    'Lab Tests',
+    COUNT(*)
+FROM LabTests;
