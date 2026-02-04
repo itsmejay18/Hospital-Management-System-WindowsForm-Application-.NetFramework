@@ -1,5 +1,6 @@
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Forms.Shared;
 using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.UserControls
@@ -15,6 +16,13 @@ namespace HospitalManagementSystem.UserControls
             btnExportCsv.Click += btnExportCsv_Click;
             btnExportPdf.Click += btnExportPdf_Click;
             btnLoad.Click += btnLoad_Click;
+            btnUsers.Click += btnUsers_Click;
+            btnAuditLog.Click += btnAuditLog_Click;
+            btnBackup.Click += btnBackup_Click;
+            if (cboReport.Items.Count > 0)
+            {
+                cboReport.SelectedIndex = 0;
+            }
         }
 
         private async void btnLoad_Click(object sender, System.EventArgs e)
@@ -65,6 +73,30 @@ namespace HospitalManagementSystem.UserControls
                 {
                     ExportHelper.ExportToPdf(dgvReport, sfd.FileName);
                 }
+            }
+        }
+
+        private void btnUsers_Click(object sender, System.EventArgs e)
+        {
+            using (var dlg = new frmUserEdit())
+            {
+                dlg.ShowDialog(this);
+            }
+        }
+
+        private void btnAuditLog_Click(object sender, System.EventArgs e)
+        {
+            using (var dlg = new frmAuditLog())
+            {
+                dlg.ShowDialog(this);
+            }
+        }
+
+        private void btnBackup_Click(object sender, System.EventArgs e)
+        {
+            using (var dlg = new frmBackupRestore())
+            {
+                dlg.ShowDialog(this);
             }
         }
     }

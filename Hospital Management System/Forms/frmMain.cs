@@ -19,6 +19,7 @@ namespace HospitalManagementSystem.Forms
             ucNavigation1.DoctorsClicked += (_, __) => ShowDoctors();
             ucNavigation1.AppointmentsClicked += (_, __) => ShowAppointments();
             ucNavigation1.BillingClicked += (_, __) => ShowBilling();
+            ucNavigation1.UsersClicked += (_, __) => ShowUsers();
             ucNavigation1.ReportsClicked += (_, __) => ShowReports();
             ucHeader1.LogoutClicked += (_, __) => Logout();
         }
@@ -64,6 +65,11 @@ namespace HospitalManagementSystem.Forms
         private void ShowReports()
         {
             LoadModule(new ucReports(), "Reports");
+        }
+
+        private void ShowUsers()
+        {
+            LoadModule(new ucUsers(), "Users");
         }
 
         private void Logout()

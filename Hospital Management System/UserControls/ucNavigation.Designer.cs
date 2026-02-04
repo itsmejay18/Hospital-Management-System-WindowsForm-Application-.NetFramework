@@ -12,6 +12,7 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.Button btnDoctors;
         private System.Windows.Forms.Button btnAppointments;
         private System.Windows.Forms.Button btnBilling;
+        private System.Windows.Forms.Button btnUsers;
         private System.Windows.Forms.Button btnReports;
 
         protected override void Dispose(bool disposing)
@@ -33,6 +34,7 @@ namespace HospitalManagementSystem.UserControls
             this.btnDoctors = new System.Windows.Forms.Button();
             this.btnAppointments = new System.Windows.Forms.Button();
             this.btnBilling = new System.Windows.Forms.Button();
+            this.btnUsers = new System.Windows.Forms.Button();
             this.btnReports = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.flpMenu.SuspendLayout();
@@ -66,6 +68,7 @@ namespace HospitalManagementSystem.UserControls
             this.flpMenu.Controls.Add(this.btnDoctors);
             this.flpMenu.Controls.Add(this.btnAppointments);
             this.flpMenu.Controls.Add(this.btnBilling);
+            this.flpMenu.Controls.Add(this.btnUsers);
             this.flpMenu.Controls.Add(this.btnReports);
             this.flpMenu.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flpMenu.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
@@ -131,13 +134,24 @@ namespace HospitalManagementSystem.UserControls
             this.btnBilling.UseVisualStyleBackColor = true;
             this.btnBilling.Click += new System.EventHandler(this.btnBilling_Click);
             // 
+            // btnUsers
+            // 
+            this.btnUsers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnUsers.Location = new System.Drawing.Point(11, 201);
+            this.btnUsers.Name = "btnUsers";
+            this.btnUsers.Size = new System.Drawing.Size(190, 32);
+            this.btnUsers.TabIndex = 5;
+            this.btnUsers.Text = "Users";
+            this.btnUsers.UseVisualStyleBackColor = true;
+            this.btnUsers.Click += new System.EventHandler(this.btnUsers_Click);
+            // 
             // btnReports
             // 
             this.btnReports.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnReports.Location = new System.Drawing.Point(11, 201);
+            this.btnReports.Location = new System.Drawing.Point(11, 239);
             this.btnReports.Name = "btnReports";
             this.btnReports.Size = new System.Drawing.Size(190, 32);
-            this.btnReports.TabIndex = 5;
+            this.btnReports.TabIndex = 6;
             this.btnReports.Text = "Reports";
             this.btnReports.UseVisualStyleBackColor = true;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);

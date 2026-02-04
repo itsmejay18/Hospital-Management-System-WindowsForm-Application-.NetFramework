@@ -115,12 +115,31 @@
     <Compile Include="Forms\Shared\frmInvoicePayment.Designer.cs">
       <DependentUpon>frmInvoicePayment.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Shared\frmAuditLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmAuditLog.Designer.cs">
+      <DependentUpon>frmAuditLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Shared\frmBackupRestore.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmBackupRestore.Designer.cs">
+      <DependentUpon>frmBackupRestore.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Shared\frmUserEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Shared\frmUserEdit.Designer.cs">
+      <DependentUpon>frmUserEdit.cs</DependentUpon>
+    </Compile>
     <Compile Include="BLL\Services\AppointmentService.cs" />
     <Compile Include="BLL\Services\BillingService.cs" />
     <Compile Include="BLL\Services\DashboardService.cs" />
     <Compile Include="BLL\Services\DoctorService.cs" />
     <Compile Include="BLL\Services\PatientService.cs" />
     <Compile Include="BLL\Services\ReportService.cs" />
+    <Compile Include="BLL\Services\UserService.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\ExportHelper.cs" />
     <Compile Include="Models\Appointment.cs" />
@@ -196,6 +215,12 @@
     </Compile>
     <Compile Include="UserControls\ucReports.Designer.cs">
       <DependentUpon>ucReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ucUsers.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControls\ucUsers.Designer.cs">
+      <DependentUpon>ucUsers.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

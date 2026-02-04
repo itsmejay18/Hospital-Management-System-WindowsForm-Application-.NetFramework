@@ -10,6 +10,7 @@ namespace HospitalManagementSystem.UserControls
         public event EventHandler DoctorsClicked;
         public event EventHandler AppointmentsClicked;
         public event EventHandler BillingClicked;
+        public event EventHandler UsersClicked;
         public event EventHandler ReportsClicked;
 
         public ucNavigation()
@@ -40,6 +41,11 @@ namespace HospitalManagementSystem.UserControls
         private void btnBilling_Click(object sender, EventArgs e)
         {
             BillingClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void btnUsers_Click(object sender, EventArgs e)
+        {
+            UsersClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnReports_Click(object sender, EventArgs e)

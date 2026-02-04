@@ -9,6 +9,9 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.Button btnExportExcel;
         private System.Windows.Forms.Button btnExportCsv;
         private System.Windows.Forms.Button btnExportPdf;
+        private System.Windows.Forms.Button btnUsers;
+        private System.Windows.Forms.Button btnAuditLog;
+        private System.Windows.Forms.Button btnBackup;
         private System.Windows.Forms.DataGridView dgvReport;
 
         protected override void Dispose(bool disposing)
@@ -28,6 +31,9 @@ namespace HospitalManagementSystem.UserControls
             this.btnExportExcel = new System.Windows.Forms.Button();
             this.btnExportCsv = new System.Windows.Forms.Button();
             this.btnExportPdf = new System.Windows.Forms.Button();
+            this.btnUsers = new System.Windows.Forms.Button();
+            this.btnAuditLog = new System.Windows.Forms.Button();
+            this.btnBackup = new System.Windows.Forms.Button();
             this.dgvReport = new System.Windows.Forms.DataGridView();
             this.pnlButtons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvReport)).BeginInit();
@@ -41,6 +47,9 @@ namespace HospitalManagementSystem.UserControls
             this.pnlButtons.Controls.Add(this.btnExportExcel);
             this.pnlButtons.Controls.Add(this.btnLoad);
             this.pnlButtons.Controls.Add(this.cboReport);
+            this.pnlButtons.Controls.Add(this.btnUsers);
+            this.pnlButtons.Controls.Add(this.btnAuditLog);
+            this.pnlButtons.Controls.Add(this.btnBackup);
             this.pnlButtons.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlButtons.Location = new System.Drawing.Point(0, 0);
             this.pnlButtons.Name = "pnlButtons";
@@ -102,6 +111,39 @@ namespace HospitalManagementSystem.UserControls
             this.btnExportPdf.TabIndex = 4;
             this.btnExportPdf.Text = "Export PDF";
             this.btnExportPdf.UseVisualStyleBackColor = true;
+            // 
+            // btnUsers
+            // 
+            this.btnUsers.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnUsers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnUsers.Location = new System.Drawing.Point(650, 10);
+            this.btnUsers.Name = "btnUsers";
+            this.btnUsers.Size = new System.Drawing.Size(85, 28);
+            this.btnUsers.TabIndex = 5;
+            this.btnUsers.Text = "Users";
+            this.btnUsers.UseVisualStyleBackColor = true;
+            // 
+            // btnAuditLog
+            // 
+            this.btnAuditLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAuditLog.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAuditLog.Location = new System.Drawing.Point(741, 10);
+            this.btnAuditLog.Name = "btnAuditLog";
+            this.btnAuditLog.Size = new System.Drawing.Size(85, 28);
+            this.btnAuditLog.TabIndex = 6;
+            this.btnAuditLog.Text = "Audit Log";
+            this.btnAuditLog.UseVisualStyleBackColor = true;
+            // 
+            // btnBackup
+            // 
+            this.btnBackup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBackup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBackup.Location = new System.Drawing.Point(832, 10);
+            this.btnBackup.Name = "btnBackup";
+            this.btnBackup.Size = new System.Drawing.Size(85, 28);
+            this.btnBackup.TabIndex = 7;
+            this.btnBackup.Text = "Backup";
+            this.btnBackup.UseVisualStyleBackColor = true;
             // 
             // dgvReport
             // 
