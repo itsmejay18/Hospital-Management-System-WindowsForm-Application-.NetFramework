@@ -21,7 +21,15 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
-                const string sql = "SELECT * FROM Appointments ORDER BY AppointmentDate DESC, AppointmentTime DESC";
+                const string sql = @"SELECT a.*, 
+                                            CONCAT(p.FirstName, ' ', p.LastName) AS PatientName,
+                                            CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName
+                                     FROM Appointments a
+                                     LEFT JOIN Patients p ON a.PatientID = p.PatientID
+                                     LEFT JOIN Doctors d ON a.DoctorID = d.DoctorID
+                                     LEFT JOIN Users u ON d.UserID = u.UserID
+                                     LEFT JOIN UserDetails ud ON u.UserID = ud.UserID
+                                     ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC";
                 using (var connection = Db.OpenConnection())
                 {
                     return connection.Query<Appointment>(sql).ToList();
@@ -36,7 +44,15 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
-                const string sql = "SELECT * FROM Appointments ORDER BY AppointmentDate DESC, AppointmentTime DESC";
+                const string sql = @"SELECT a.*, 
+                                            CONCAT(p.FirstName, ' ', p.LastName) AS PatientName,
+                                            CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName
+                                     FROM Appointments a
+                                     LEFT JOIN Patients p ON a.PatientID = p.PatientID
+                                     LEFT JOIN Doctors d ON a.DoctorID = d.DoctorID
+                                     LEFT JOIN Users u ON d.UserID = u.UserID
+                                     LEFT JOIN UserDetails ud ON u.UserID = ud.UserID
+                                     ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC";
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
                     var results = await connection.QueryAsync<Appointment>(sql).ConfigureAwait(false);

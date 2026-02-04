@@ -23,6 +23,8 @@ namespace HospitalManagementSystem.Models
         private int? _createdBy;
         private DateTime? _createdDate;
         private string _notes;
+        private string _patientName;
+        private string _doctorName;
 
         /// <summary>
         /// Gets or sets the appointment identifier.
@@ -150,6 +152,26 @@ namespace HospitalManagementSystem.Models
         {
             get => _notes;
             set => SetProperty(ref _notes, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the patient display name.
+        /// </summary>
+        [NotMapped]
+        public string PatientName
+        {
+            get => _patientName;
+            set => SetProperty(ref _patientName, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the doctor display name.
+        /// </summary>
+        [NotMapped]
+        public string DoctorName
+        {
+            get => _doctorName;
+            set => SetProperty(ref _doctorName, value);
         }
     }
 }

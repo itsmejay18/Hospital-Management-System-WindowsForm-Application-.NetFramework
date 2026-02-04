@@ -153,16 +153,16 @@ namespace HospitalManagementSystem.UserControls
             // 
             // colName
             // 
-            this.colName.DataPropertyName = "UserID";
-            this.colName.HeaderText = "User ID";
+            this.colName.DataPropertyName = "DoctorName";
+            this.colName.HeaderText = "Doctor";
             this.colName.Name = "colName";
             this.colName.ReadOnly = true;
             this.colName.Width = 240;
             // 
             // colSpec
             // 
-            this.colSpec.DataPropertyName = "SpecializationID";
-            this.colSpec.HeaderText = "Specialization ID";
+            this.colSpec.DataPropertyName = "SpecializationName";
+            this.colSpec.HeaderText = "Specialization";
             this.colSpec.Name = "colSpec";
             this.colSpec.ReadOnly = true;
             this.colSpec.Width = 200;

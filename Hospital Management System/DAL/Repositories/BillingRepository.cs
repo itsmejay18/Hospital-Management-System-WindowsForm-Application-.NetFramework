@@ -21,7 +21,11 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
-                const string sql = "SELECT * FROM Invoices ORDER BY InvoiceDate DESC";
+                const string sql = @"SELECT i.*, 
+                                            CONCAT(p.FirstName, ' ', p.LastName) AS PatientName
+                                     FROM Invoices i
+                                     LEFT JOIN Patients p ON i.PatientID = p.PatientID
+                                     ORDER BY i.InvoiceDate DESC";
                 using (var connection = Db.OpenConnection())
                 {
                     return connection.Query<Invoice>(sql).ToList();
@@ -36,7 +40,11 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
-                const string sql = "SELECT * FROM Invoices ORDER BY InvoiceDate DESC";
+                const string sql = @"SELECT i.*, 
+                                            CONCAT(p.FirstName, ' ', p.LastName) AS PatientName
+                                     FROM Invoices i
+                                     LEFT JOIN Patients p ON i.PatientID = p.PatientID
+                                     ORDER BY i.InvoiceDate DESC";
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
                     var results = await connection.QueryAsync<Invoice>(sql).ConfigureAwait(false);

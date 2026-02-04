@@ -82,8 +82,8 @@ namespace HospitalManagementSystem.UserControls
             // 
             // colPatient
             // 
-            this.colPatient.DataPropertyName = "PatientID";
-            this.colPatient.HeaderText = "Patient ID";
+            this.colPatient.DataPropertyName = "PatientName";
+            this.colPatient.HeaderText = "Patient";
             this.colPatient.Name = "colPatient";
             this.colPatient.ReadOnly = true;
             this.colPatient.Width = 220;

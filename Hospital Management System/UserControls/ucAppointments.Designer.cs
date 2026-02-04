@@ -159,16 +159,16 @@ namespace HospitalManagementSystem.UserControls
             // 
             // colPatient
             // 
-            this.colPatient.DataPropertyName = "PatientID";
-            this.colPatient.HeaderText = "Patient ID";
+            this.colPatient.DataPropertyName = "PatientName";
+            this.colPatient.HeaderText = "Patient";
             this.colPatient.Name = "colPatient";
             this.colPatient.ReadOnly = true;
             this.colPatient.Width = 200;
             // 
             // colDoctor
             // 
-            this.colDoctor.DataPropertyName = "DoctorID";
-            this.colDoctor.HeaderText = "Doctor ID";
+            this.colDoctor.DataPropertyName = "DoctorName";
+            this.colDoctor.HeaderText = "Doctor";
             this.colDoctor.Name = "colDoctor";
             this.colDoctor.ReadOnly = true;
             this.colDoctor.Width = 200;

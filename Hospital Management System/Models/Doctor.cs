@@ -20,6 +20,8 @@ namespace HospitalManagementSystem.Models
         private decimal? _consultationFee;
         private bool _isAvailable;
         private DateTime? _joiningDate;
+        private string _doctorName;
+        private string _specializationName;
 
         /// <summary>
         /// Gets or sets the doctor identifier.
@@ -116,6 +118,26 @@ namespace HospitalManagementSystem.Models
         {
             get => _joiningDate;
             set => SetProperty(ref _joiningDate, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the doctor name (joined from user details).
+        /// </summary>
+        [NotMapped]
+        public string DoctorName
+        {
+            get => _doctorName;
+            set => SetProperty(ref _doctorName, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the specialization name.
+        /// </summary>
+        [NotMapped]
+        public string SpecializationName
+        {
+            get => _specializationName;
+            set => SetProperty(ref _specializationName, value);
         }
     }
 }

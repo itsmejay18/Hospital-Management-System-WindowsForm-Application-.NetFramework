@@ -23,6 +23,7 @@ namespace HospitalManagementSystem.Models
         private string _status;
         private int? _createdBy;
         private string _notes;
+        private string _patientName;
 
         /// <summary>
         /// Gets or sets the invoice identifier.
@@ -145,6 +146,16 @@ namespace HospitalManagementSystem.Models
         {
             get => _notes;
             set => SetProperty(ref _notes, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the patient display name.
+        /// </summary>
+        [NotMapped]
+        public string PatientName
+        {
+            get => _patientName;
+            set => SetProperty(ref _patientName, value);
         }
     }
 }

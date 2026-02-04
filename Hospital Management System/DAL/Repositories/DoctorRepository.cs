@@ -20,7 +20,14 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
-                const string sql = "SELECT * FROM Doctors ORDER BY DoctorCode";
+                const string sql = @"SELECT d.*, 
+                                            CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName,
+                                            s.SpecializationName
+                                     FROM Doctors d
+                                     LEFT JOIN Users u ON d.UserID = u.UserID
+                                     LEFT JOIN UserDetails ud ON u.UserID = ud.UserID
+                                     LEFT JOIN Specializations s ON d.SpecializationID = s.SpecializationID
+                                     ORDER BY d.DoctorCode";
                 using (var connection = Db.OpenConnection())
                 {
                     return connection.Query<Doctor>(sql).ToList();
@@ -35,7 +42,14 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
-                const string sql = "SELECT * FROM Doctors ORDER BY DoctorCode";
+                const string sql = @"SELECT d.*, 
+                                            CONCAT(ud.FirstName, ' ', ud.LastName) AS DoctorName,
+                                            s.SpecializationName
+                                     FROM Doctors d
+                                     LEFT JOIN Users u ON d.UserID = u.UserID
+                                     LEFT JOIN UserDetails ud ON u.UserID = ud.UserID
+                                     LEFT JOIN Specializations s ON d.SpecializationID = s.SpecializationID
+                                     ORDER BY d.DoctorCode";
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
                     var results = await connection.QueryAsync<Doctor>(sql).ConfigureAwait(false);

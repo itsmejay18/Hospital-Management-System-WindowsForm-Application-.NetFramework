@@ -33,7 +33,7 @@ namespace HospitalManagementSystem.BLL.Services
             }
 
             var result = await _repository.SearchUsersAsync(query, query, null, null, 1, 200).ConfigureAwait(false);
-            return result.Items;
+            return new List<User>(result.Items);
         }
 
         /// <summary>
