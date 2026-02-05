@@ -8,7 +8,7 @@ namespace HospitalManagementSystem.Forms.Shared
         private System.Windows.Forms.Label lblEmail;
         private System.Windows.Forms.TextBox txtEmail;
         private System.Windows.Forms.Label lblRoleId;
-        private System.Windows.Forms.TextBox txtRoleId;
+        private System.Windows.Forms.ComboBox cboRole;
         private System.Windows.Forms.Label lblPassword;
         private System.Windows.Forms.TextBox txtPassword;
         private System.Windows.Forms.CheckBox chkActive;
@@ -31,7 +31,7 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblEmail = new System.Windows.Forms.Label();
             this.txtEmail = new System.Windows.Forms.TextBox();
             this.lblRoleId = new System.Windows.Forms.Label();
-            this.txtRoleId = new System.Windows.Forms.TextBox();
+            this.cboRole = new System.Windows.Forms.ComboBox();
             this.lblPassword = new System.Windows.Forms.Label();
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.chkActive = new System.Windows.Forms.CheckBox();
@@ -80,12 +80,14 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblRoleId.TabIndex = 4;
             this.lblRoleId.Text = "Role ID";
             // 
-            // txtRoleId
+            // cboRole
             // 
-            this.txtRoleId.Location = new System.Drawing.Point(110, 83);
-            this.txtRoleId.Name = "txtRoleId";
-            this.txtRoleId.Size = new System.Drawing.Size(220, 23);
-            this.txtRoleId.TabIndex = 5;
+            this.cboRole.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboRole.FormattingEnabled = true;
+            this.cboRole.Location = new System.Drawing.Point(110, 83);
+            this.cboRole.Name = "cboRole";
+            this.cboRole.Size = new System.Drawing.Size(220, 23);
+            this.cboRole.TabIndex = 5;
             // 
             // lblPassword
             // 
@@ -145,7 +147,7 @@ namespace HospitalManagementSystem.Forms.Shared
             this.Controls.Add(this.chkActive);
             this.Controls.Add(this.txtPassword);
             this.Controls.Add(this.lblPassword);
-            this.Controls.Add(this.txtRoleId);
+            this.Controls.Add(this.cboRole);
             this.Controls.Add(this.lblRoleId);
             this.Controls.Add(this.txtEmail);
             this.Controls.Add(this.lblEmail);

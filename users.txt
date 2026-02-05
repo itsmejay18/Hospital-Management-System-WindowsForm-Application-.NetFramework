@@ -1,0 +1,5 @@
+admin / admin123
+dr.smith / admin123
+dr.jones / admin123
+nurse.mary / admin123
+reception.john / admin123

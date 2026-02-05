@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HospitalManagementSystem.DAL.Repositories;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.BLL.Services
@@ -41,9 +42,15 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<int> AddAsync(User user)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
+            }
+
+            if (!PasswordHasher.IsHashFormat(user.PasswordHash))
+            {
+                user.PasswordHash = PasswordHasher.Hash(user.PasswordHash);
             }
 
             return await _repository.AddUserAsync(user).ConfigureAwait(false);
@@ -54,9 +61,15 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> UpdateAsync(User user)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
+            }
+
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash) && !PasswordHasher.IsHashFormat(user.PasswordHash))
+            {
+                user.PasswordHash = PasswordHasher.Hash(user.PasswordHash);
             }
 
             return _repository.UpdateUserAsync(user);
@@ -67,7 +80,16 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int userId)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             return _repository.DeleteUserAsync(userId);
+        }
+
+        /// <summary>
+        /// Gets available roles.
+        /// </summary>
+        public Task<List<UserRole>> GetRolesAsync()
+        {
+            return _repository.GetAllRolesAsync();
         }
     }
 }

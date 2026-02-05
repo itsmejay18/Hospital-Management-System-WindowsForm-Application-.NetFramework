@@ -12,10 +12,24 @@ namespace HospitalManagementSystem.UserControls
         public event EventHandler BillingClicked;
         public event EventHandler UsersClicked;
         public event EventHandler ReportsClicked;
+        public event EventHandler LogoutClicked;
 
         public ucNavigation()
         {
             InitializeComponent();
+        }
+
+        public void ConfigureForRole(string roleName)
+        {
+            var normalized = (roleName ?? string.Empty).Trim().ToLowerInvariant();
+
+            btnDashboard.Visible = true;
+            btnPatients.Visible = true;
+            btnDoctors.Visible = normalized == "administrator" || normalized == "receptionist";
+            btnAppointments.Visible = true;
+            btnBilling.Visible = normalized == "administrator" || normalized == "receptionist";
+            btnUsers.Visible = normalized == "administrator";
+            btnReports.Visible = normalized == "administrator" || normalized == "doctor";
         }
 
         private void btnDashboard_Click(object sender, EventArgs e)
@@ -51,6 +65,11 @@ namespace HospitalManagementSystem.UserControls
         private void btnReports_Click(object sender, EventArgs e)
         {
             ReportsClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            LogoutClicked?.Invoke(this, EventArgs.Empty);
         }
     }
 }

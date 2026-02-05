@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using HospitalManagementSystem.DAL.DTOs;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.DAL.Repositories
@@ -12,6 +13,66 @@ namespace HospitalManagementSystem.DAL.Repositories
     /// </summary>
     public sealed class UserRepository : RepositoryBase
     {
+        /// <summary>
+        /// Gets a user with role name by username.
+        /// </summary>
+        /// <param name="username">Username.</param>
+        public Task<AuthenticatedUserDto> GetAuthUserByUsernameAsync(string username)
+        {
+            return ExecuteSafeAsync(async () =>
+            {
+                const string sql = @"SELECT u.UserID,
+                                            u.Username,
+                                            u.PasswordHash,
+                                            u.RoleID,
+                                            ur.RoleName,
+                                            u.IsActive
+                                     FROM Users u
+                                     INNER JOIN UserRoles ur ON ur.RoleID = u.RoleID
+                                     WHERE u.Username = @Username";
+
+                using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
+                {
+                    return await connection.QuerySingleOrDefaultAsync<AuthenticatedUserDto>(sql, new { Username = username }).ConfigureAwait(false);
+                }
+            }, "GetAuthUserByUsernameAsync");
+        }
+
+        /// <summary>
+        /// Updates last login time.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
+        public Task UpdateLastLoginAsync(int userId)
+        {
+            return ExecuteSafeAsync(async () =>
+            {
+                const string sql = "UPDATE Users SET LastLogin = NOW() WHERE UserID = @UserID";
+                using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
+                {
+                    await connection.ExecuteAsync(sql, new { UserID = userId }).ConfigureAwait(false);
+                    return true;
+                }
+            }, "UpdateLastLoginAsync");
+        }
+
+        /// <summary>
+        /// Updates password hash.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
+        /// <param name="passwordHash">New password hash.</param>
+        public Task UpdatePasswordHashAsync(int userId, string passwordHash)
+        {
+            return ExecuteSafeAsync(async () =>
+            {
+                const string sql = "UPDATE Users SET PasswordHash = @PasswordHash WHERE UserID = @UserID";
+                using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
+                {
+                    await connection.ExecuteAsync(sql, new { UserID = userId, PasswordHash = passwordHash }).ConfigureAwait(false);
+                    return true;
+                }
+            }, "UpdatePasswordHashAsync");
+        }
+
         /// <summary>
         /// Gets all users.
         /// </summary>

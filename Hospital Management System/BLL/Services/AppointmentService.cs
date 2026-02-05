@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HospitalManagementSystem.DAL.Repositories;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.BLL.Services
@@ -26,6 +27,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<int> CreateAsync(Appointment appointment)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Doctor", "Nurse");
             if (appointment == null)
             {
                 throw new ArgumentNullException(nameof(appointment));
@@ -39,6 +41,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<int> ScheduleAsync(Appointment appointment, int createdBy)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Doctor", "Nurse");
             if (appointment == null)
             {
                 throw new ArgumentNullException(nameof(appointment));
@@ -66,6 +69,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> UpdateAsync(Appointment appointment)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Doctor", "Nurse");
             if (appointment == null)
             {
                 throw new ArgumentNullException(nameof(appointment));
@@ -79,6 +83,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int appointmentId)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist");
             return _repository.DeleteAppointmentAsync(appointmentId);
         }
     }

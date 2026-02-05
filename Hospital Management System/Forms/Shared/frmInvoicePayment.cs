@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using HospitalManagementSystem.DAL.Repositories;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.Forms.Shared
 {
@@ -32,7 +33,7 @@ namespace HospitalManagementSystem.Forms.Shared
                     cboMethod.Text,
                     amount,
                     txtReference.Text.Trim(),
-                    1).ConfigureAwait(true);
+                    UserSession.CurrentUser?.UserID ?? 1).ConfigureAwait(true);
 
                 MessageBox.Show($"Payment saved. Invoice status: {result.InvoiceStatus}", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -76,6 +76,7 @@
     <Compile Include="DAL\DatabaseConnection.cs" />
     <Compile Include="DAL\DatabaseTransaction.cs" />
     <Compile Include="DAL\PagedResult.cs" />
+    <Compile Include="DAL\DTOs\AuthenticatedUserDto.cs" />
     <Compile Include="DAL\DTOs\StoredProcedureResults.cs" />
     <Compile Include="DAL\Repositories\AppointmentRepository.cs" />
     <Compile Include="DAL\Repositories\BillingRepository.cs" />
@@ -140,6 +141,8 @@
       <DependentUpon>frmUserEdit.cs</DependentUpon>
     </Compile>
     <Compile Include="BLL\Services\AppointmentService.cs" />
+    <Compile Include="BLL\Services\AuthenticatedUser.cs" />
+    <Compile Include="BLL\Services\AuthenticationService.cs" />
     <Compile Include="BLL\Services\BillingService.cs" />
     <Compile Include="BLL\Services\DashboardService.cs" />
     <Compile Include="BLL\Services\DoctorService.cs" />
@@ -147,6 +150,9 @@
     <Compile Include="BLL\Services\ReportService.cs" />
     <Compile Include="BLL\Services\UserService.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
+    <Compile Include="Helpers\UserSession.cs" />
+    <Compile Include="Helpers\AuthorizationHelper.cs" />
+    <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\ExportHelper.cs" />
     <Compile Include="Models\Appointment.cs" />
     <Compile Include="Models\AppointmentHistory.cs" />
@@ -185,6 +191,12 @@
     </Compile>
     <Compile Include="UserControls\ucDashboard.Designer.cs">
       <DependentUpon>ucDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ucRoleDashboard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserControls\ucRoleDashboard.Designer.cs">
+      <DependentUpon>ucRoleDashboard.cs</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ucNavigation.cs">
       <SubType>UserControl</SubType>

@@ -17,6 +17,11 @@ namespace HospitalManagementSystem.UserControls
             lblTitle.Text = title;
         }
 
+        public void SetUser(string username, string roleName)
+        {
+            lblUser.Text = $"User: {username} ({roleName})";
+        }
+
         private void btnLogout_Click(object sender, EventArgs e)
         {
             LogoutClicked?.Invoke(this, EventArgs.Empty);

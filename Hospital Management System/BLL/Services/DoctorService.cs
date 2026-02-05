@@ -27,6 +27,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<int> AddAsync(Doctor doctor)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             Validate(doctor);
             doctor.IsAvailable = true;
             return await _repository.AddDoctorAsync(doctor).ConfigureAwait(false);
@@ -37,6 +38,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> UpdateAsync(Doctor doctor)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             Validate(doctor);
             return _repository.UpdateDoctorAsync(doctor);
         }
@@ -46,7 +48,16 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int doctorId)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             return _repository.DeleteDoctorAsync(doctorId);
+        }
+
+        /// <summary>
+        /// Gets all specializations.
+        /// </summary>
+        public Task<List<Specialization>> GetSpecializationsAsync()
+        {
+            return _repository.GetAllSpecializationsAsync();
         }
 
         private static void Validate(Doctor doctor)

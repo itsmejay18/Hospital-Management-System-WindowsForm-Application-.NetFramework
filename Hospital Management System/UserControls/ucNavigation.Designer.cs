@@ -14,6 +14,7 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.Button btnBilling;
         private System.Windows.Forms.Button btnUsers;
         private System.Windows.Forms.Button btnReports;
+        private System.Windows.Forms.Button btnLogout;
 
         protected override void Dispose(bool disposing)
         {
@@ -36,6 +37,7 @@ namespace HospitalManagementSystem.UserControls
             this.btnBilling = new System.Windows.Forms.Button();
             this.btnUsers = new System.Windows.Forms.Button();
             this.btnReports = new System.Windows.Forms.Button();
+            this.btnLogout = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.flpMenu.SuspendLayout();
             this.SuspendLayout();
@@ -70,6 +72,7 @@ namespace HospitalManagementSystem.UserControls
             this.flpMenu.Controls.Add(this.btnBilling);
             this.flpMenu.Controls.Add(this.btnUsers);
             this.flpMenu.Controls.Add(this.btnReports);
+            this.flpMenu.Controls.Add(this.btnLogout);
             this.flpMenu.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flpMenu.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flpMenu.Location = new System.Drawing.Point(0, 64);
@@ -155,6 +158,17 @@ namespace HospitalManagementSystem.UserControls
             this.btnReports.Text = "Reports";
             this.btnReports.UseVisualStyleBackColor = true;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);
+            // 
+            // btnLogout
+            // 
+            this.btnLogout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLogout.Location = new System.Drawing.Point(11, 277);
+            this.btnLogout.Name = "btnLogout";
+            this.btnLogout.Size = new System.Drawing.Size(190, 32);
+            this.btnLogout.TabIndex = 7;
+            this.btnLogout.Text = "Logout";
+            this.btnLogout.UseVisualStyleBackColor = true;
+            this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);
             // 
             // ucNavigation
             // 

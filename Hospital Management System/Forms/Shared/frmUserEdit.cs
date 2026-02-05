@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Models;
@@ -9,6 +11,7 @@ namespace HospitalManagementSystem.Forms.Shared
     {
         private readonly UserService _service = new UserService();
         private readonly User _user;
+        private List<UserRole> _roles = new List<UserRole>();
 
         public frmUserEdit()
             : this(new User())
@@ -19,14 +22,39 @@ namespace HospitalManagementSystem.Forms.Shared
         {
             InitializeComponent();
             _user = user;
+            Load += frmUserEdit_Load;
             BindData();
+        }
+
+        private async void frmUserEdit_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                _roles = await _service.GetRolesAsync().ConfigureAwait(true);
+                cboRole.DataSource = _roles;
+                cboRole.DisplayMember = "RoleName";
+                cboRole.ValueMember = "RoleID";
+
+                if (_user.RoleID > 0)
+                {
+                    cboRole.SelectedValue = _user.RoleID;
+                }
+                else
+                {
+                    var defaultRole = _roles.FirstOrDefault(r => string.Equals(r.RoleName, "Receptionist", StringComparison.OrdinalIgnoreCase));
+                    cboRole.SelectedValue = defaultRole?.RoleID ?? _roles.FirstOrDefault()?.RoleID;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to load roles: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BindData()
         {
             txtUsername.Text = _user.Username;
             txtEmail.Text = _user.Email;
-            txtRoleId.Text = _user.RoleID == 0 ? string.Empty : _user.RoleID.ToString();
             chkActive.Checked = _user.IsActive;
         }
 
@@ -36,7 +64,7 @@ namespace HospitalManagementSystem.Forms.Shared
             {
                 _user.Username = txtUsername.Text.Trim();
                 _user.Email = txtEmail.Text.Trim();
-                _user.RoleID = int.TryParse(txtRoleId.Text.Trim(), out var roleId) ? roleId : 1;
+                _user.RoleID = cboRole.SelectedValue is int roleId ? roleId : 1;
                 _user.IsActive = chkActive.Checked;
 
                 if (string.IsNullOrWhiteSpace(txtPassword.Text))

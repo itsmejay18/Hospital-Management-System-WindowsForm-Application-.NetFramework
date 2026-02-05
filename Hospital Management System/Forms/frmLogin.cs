@@ -1,10 +1,14 @@
 using System;
 using System.Windows.Forms;
+using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.Forms
 {
     public partial class frmLogin : Form
     {
+        private readonly AuthenticationService _authenticationService = new AuthenticationService();
+
         public frmLogin()
         {
             InitializeComponent();
@@ -18,7 +22,7 @@ namespace HospitalManagementSystem.Forms
             AcceptButton = btnLogin;
         }
 
-        private void btnLogin_Click(object sender, EventArgs e)
+        private async void btnLogin_Click(object sender, EventArgs e)
         {
             try
             {
@@ -35,18 +39,20 @@ namespace HospitalManagementSystem.Forms
                 }
 
                 errorProvider1.Clear();
-
-                if (txtUsername.Text.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase)
-                    && txtPassword.Text == "admin123")
+                var authenticatedUser = await _authenticationService
+                    .LoginAsync(txtUsername.Text.Trim(), txtPassword.Text)
+                    .ConfigureAwait(true);
+                if (authenticatedUser == null)
                 {
-                    var main = new frmMain();
-                    Hide();
-                    main.FormClosed += (_, __) => Close();
-                    main.Show();
+                    MessageBox.Show("Invalid credentials.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                MessageBox.Show("Invalid credentials.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                UserSession.Start(authenticatedUser);
+                var main = new frmMain(authenticatedUser);
+                Hide();
+                main.FormClosed += (_, __) => Close();
+                main.Show();
             }
             catch (Exception ex)
             {

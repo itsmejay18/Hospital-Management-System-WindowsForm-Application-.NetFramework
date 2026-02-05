@@ -27,6 +27,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<int> AddAsync(Patient patient)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Nurse");
             Validate(patient);
             if (!patient.RegistrationDate.HasValue)
             {
@@ -41,6 +42,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public async Task<bool> UpdateAsync(Patient patient)
         {
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Nurse", "Doctor");
             Validate(patient);
             return await _repository.UpdatePatientAsync(patient).ConfigureAwait(false);
         }
@@ -50,6 +52,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int patientId)
         {
+            AuthorizationHelper.EnsureRole("Administrator");
             return _repository.DeletePatientAsync(patientId);
         }
 

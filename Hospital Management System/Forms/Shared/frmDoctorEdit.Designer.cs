@@ -6,9 +6,9 @@ namespace HospitalManagementSystem.Forms.Shared
         private System.Windows.Forms.Label lblCode;
         private System.Windows.Forms.TextBox txtCode;
         private System.Windows.Forms.Label lblUserId;
-        private System.Windows.Forms.TextBox txtUserId;
+        private System.Windows.Forms.ComboBox cboUser;
         private System.Windows.Forms.Label lblSpecId;
-        private System.Windows.Forms.TextBox txtSpecializationId;
+        private System.Windows.Forms.ComboBox cboSpecialization;
         private System.Windows.Forms.Label lblLicense;
         private System.Windows.Forms.TextBox txtLicense;
         private System.Windows.Forms.Label lblQualification;
@@ -32,9 +32,9 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblCode = new System.Windows.Forms.Label();
             this.txtCode = new System.Windows.Forms.TextBox();
             this.lblUserId = new System.Windows.Forms.Label();
-            this.txtUserId = new System.Windows.Forms.TextBox();
+            this.cboUser = new System.Windows.Forms.ComboBox();
             this.lblSpecId = new System.Windows.Forms.Label();
-            this.txtSpecializationId = new System.Windows.Forms.TextBox();
+            this.cboSpecialization = new System.Windows.Forms.ComboBox();
             this.lblLicense = new System.Windows.Forms.Label();
             this.txtLicense = new System.Windows.Forms.TextBox();
             this.lblQualification = new System.Windows.Forms.Label();
@@ -71,12 +71,14 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblUserId.TabIndex = 2;
             this.lblUserId.Text = "User ID";
             // 
-            // txtUserId
+            // cboUser
             // 
-            this.txtUserId.Location = new System.Drawing.Point(140, 49);
-            this.txtUserId.Name = "txtUserId";
-            this.txtUserId.Size = new System.Drawing.Size(220, 23);
-            this.txtUserId.TabIndex = 3;
+            this.cboUser.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboUser.FormattingEnabled = true;
+            this.cboUser.Location = new System.Drawing.Point(140, 49);
+            this.cboUser.Name = "cboUser";
+            this.cboUser.Size = new System.Drawing.Size(220, 23);
+            this.cboUser.TabIndex = 3;
             // 
             // lblSpecId
             // 
@@ -87,12 +89,14 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblSpecId.TabIndex = 4;
             this.lblSpecId.Text = "Specialization ID";
             // 
-            // txtSpecializationId
+            // cboSpecialization
             // 
-            this.txtSpecializationId.Location = new System.Drawing.Point(140, 83);
-            this.txtSpecializationId.Name = "txtSpecializationId";
-            this.txtSpecializationId.Size = new System.Drawing.Size(220, 23);
-            this.txtSpecializationId.TabIndex = 5;
+            this.cboSpecialization.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboSpecialization.FormattingEnabled = true;
+            this.cboSpecialization.Location = new System.Drawing.Point(140, 83);
+            this.cboSpecialization.Name = "cboSpecialization";
+            this.cboSpecialization.Size = new System.Drawing.Size(220, 23);
+            this.cboSpecialization.TabIndex = 5;
             // 
             // lblLicense
             // 
@@ -183,9 +187,9 @@ namespace HospitalManagementSystem.Forms.Shared
             this.Controls.Add(this.lblQualification);
             this.Controls.Add(this.txtLicense);
             this.Controls.Add(this.lblLicense);
-            this.Controls.Add(this.txtSpecializationId);
+            this.Controls.Add(this.cboSpecialization);
             this.Controls.Add(this.lblSpecId);
-            this.Controls.Add(this.txtUserId);
+            this.Controls.Add(this.cboUser);
             this.Controls.Add(this.lblUserId);
             this.Controls.Add(this.txtCode);
             this.Controls.Add(this.lblCode);

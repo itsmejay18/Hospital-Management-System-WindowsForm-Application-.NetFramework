@@ -6,9 +6,9 @@ namespace HospitalManagementSystem.Forms.Shared
         private System.Windows.Forms.Label lblCode;
         private System.Windows.Forms.TextBox txtCode;
         private System.Windows.Forms.Label lblPatientId;
-        private System.Windows.Forms.TextBox txtPatientId;
+        private System.Windows.Forms.ComboBox cboPatient;
         private System.Windows.Forms.Label lblDoctorId;
-        private System.Windows.Forms.TextBox txtDoctorId;
+        private System.Windows.Forms.ComboBox cboDoctor;
         private System.Windows.Forms.Label lblDate;
         private System.Windows.Forms.DateTimePicker dtpDate;
         private System.Windows.Forms.Label lblTime;
@@ -34,9 +34,9 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblCode = new System.Windows.Forms.Label();
             this.txtCode = new System.Windows.Forms.TextBox();
             this.lblPatientId = new System.Windows.Forms.Label();
-            this.txtPatientId = new System.Windows.Forms.TextBox();
+            this.cboPatient = new System.Windows.Forms.ComboBox();
             this.lblDoctorId = new System.Windows.Forms.Label();
-            this.txtDoctorId = new System.Windows.Forms.TextBox();
+            this.cboDoctor = new System.Windows.Forms.ComboBox();
             this.lblDate = new System.Windows.Forms.Label();
             this.dtpDate = new System.Windows.Forms.DateTimePicker();
             this.lblTime = new System.Windows.Forms.Label();
@@ -74,12 +74,14 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblPatientId.TabIndex = 2;
             this.lblPatientId.Text = "Patient ID";
             // 
-            // txtPatientId
+            // cboPatient
             // 
-            this.txtPatientId.Location = new System.Drawing.Point(120, 49);
-            this.txtPatientId.Name = "txtPatientId";
-            this.txtPatientId.Size = new System.Drawing.Size(220, 23);
-            this.txtPatientId.TabIndex = 3;
+            this.cboPatient.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboPatient.FormattingEnabled = true;
+            this.cboPatient.Location = new System.Drawing.Point(120, 49);
+            this.cboPatient.Name = "cboPatient";
+            this.cboPatient.Size = new System.Drawing.Size(220, 23);
+            this.cboPatient.TabIndex = 3;
             // 
             // lblDoctorId
             // 
@@ -90,12 +92,14 @@ namespace HospitalManagementSystem.Forms.Shared
             this.lblDoctorId.TabIndex = 4;
             this.lblDoctorId.Text = "Doctor ID";
             // 
-            // txtDoctorId
+            // cboDoctor
             // 
-            this.txtDoctorId.Location = new System.Drawing.Point(120, 83);
-            this.txtDoctorId.Name = "txtDoctorId";
-            this.txtDoctorId.Size = new System.Drawing.Size(220, 23);
-            this.txtDoctorId.TabIndex = 5;
+            this.cboDoctor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboDoctor.FormattingEnabled = true;
+            this.cboDoctor.Location = new System.Drawing.Point(120, 83);
+            this.cboDoctor.Name = "cboDoctor";
+            this.cboDoctor.Size = new System.Drawing.Size(220, 23);
+            this.cboDoctor.TabIndex = 5;
             // 
             // lblDate
             // 
@@ -215,9 +219,9 @@ namespace HospitalManagementSystem.Forms.Shared
             this.Controls.Add(this.lblTime);
             this.Controls.Add(this.dtpDate);
             this.Controls.Add(this.lblDate);
-            this.Controls.Add(this.txtDoctorId);
+            this.Controls.Add(this.cboDoctor);
             this.Controls.Add(this.lblDoctorId);
-            this.Controls.Add(this.txtPatientId);
+            this.Controls.Add(this.cboPatient);
             this.Controls.Add(this.lblPatientId);
             this.Controls.Add(this.txtCode);
             this.Controls.Add(this.lblCode);

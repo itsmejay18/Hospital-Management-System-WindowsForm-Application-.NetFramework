@@ -1,14 +1,19 @@
 using System;
 using System.Windows.Forms;
+using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.UserControls;
 
 namespace HospitalManagementSystem.Forms
 {
     public partial class frmMain : Form
     {
-        public frmMain()
+        private readonly AuthenticatedUser _currentUser;
+
+        public frmMain(AuthenticatedUser currentUser)
         {
             InitializeComponent();
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
             HookNavigation();
         }
 
@@ -21,11 +26,15 @@ namespace HospitalManagementSystem.Forms
             ucNavigation1.BillingClicked += (_, __) => ShowBilling();
             ucNavigation1.UsersClicked += (_, __) => ShowUsers();
             ucNavigation1.ReportsClicked += (_, __) => ShowReports();
+            ucNavigation1.LogoutClicked += (_, __) => Logout();
             ucHeader1.LogoutClicked += (_, __) => Logout();
         }
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            ucHeader1.SetUser(_currentUser.Username, _currentUser.RoleName);
+            ucNavigation1.ConfigureForRole(_currentUser.RoleName);
+            lblStatus.Text = $"Signed in as {_currentUser.Username} ({_currentUser.RoleName})";
             ShowDashboard();
         }
 
@@ -39,7 +48,15 @@ namespace HospitalManagementSystem.Forms
 
         private void ShowDashboard()
         {
-            LoadModule(new ucDashboard(), "Dashboard");
+            if (string.Equals(_currentUser.RoleName, "Administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                LoadModule(new ucDashboard(), "Admin Dashboard");
+                return;
+            }
+
+            var dashboard = new ucRoleDashboard();
+            dashboard.Configure(_currentUser.RoleName, _currentUser.Username);
+            LoadModule(dashboard, $"{_currentUser.RoleName} Dashboard");
         }
 
         private void ShowPatients()
@@ -69,6 +86,12 @@ namespace HospitalManagementSystem.Forms
 
         private void ShowUsers()
         {
+            if (!string.Equals(_currentUser.RoleName, "Administrator", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Only administrators can open User Management.", "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             LoadModule(new ucUsers(), "Users");
         }
 
@@ -80,6 +103,7 @@ namespace HospitalManagementSystem.Forms
                 return;
             }
 
+            UserSession.End();
             Hide();
             using (var login = new frmLogin())
             {
