@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Forms.Shared;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.UserControls
@@ -15,12 +16,15 @@ namespace HospitalManagementSystem.UserControls
         public ucPatients()
         {
             InitializeComponent();
+            ApplyTheme();
             dgvPatients.AutoGenerateColumns = false;
             dgvPatients.DataSource = _patients;
             Load += ucPatients_Load;
             btnAdd.Click += btnAdd_Click;
             btnEdit.Click += btnEdit_Click;
             btnDelete.Click += btnDelete_Click;
+            btnSearch.Click += btnSearch_Click;
+            txtSearch.KeyDown += txtSearch_KeyDown;
         }
 
         private async void ucPatients_Load(object sender, EventArgs e)
@@ -88,6 +92,49 @@ namespace HospitalManagementSystem.UserControls
                 await _service.DeleteAsync(patient.PatientID).ConfigureAwait(true);
                 await ReloadAsync().ConfigureAwait(true);
             }
+        }
+
+        private async void btnSearch_Click(object sender, EventArgs e)
+        {
+            await SearchAsync().ConfigureAwait(true);
+        }
+
+        private async void txtSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+            {
+                return;
+            }
+
+            e.SuppressKeyPress = true;
+            await SearchAsync().ConfigureAwait(true);
+        }
+
+        private async System.Threading.Tasks.Task SearchAsync()
+        {
+            try
+            {
+                UseWaitCursor = true;
+                _patients.Clear();
+                var list = await _service.SearchAsync(txtSearch.Text).ConfigureAwait(true);
+                foreach (var item in list)
+                {
+                    _patients.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Search failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                UseWaitCursor = false;
+            }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
         }
     }
 }

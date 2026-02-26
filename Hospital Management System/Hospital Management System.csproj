@@ -85,6 +85,7 @@
     <Compile Include="DAL\Repositories\PatientRepository.cs" />
     <Compile Include="DAL\Repositories\PharmacyRepository.cs" />
     <Compile Include="DAL\Repositories\RepositoryBase.cs" />
+    <Compile Include="DAL\Repositories\RoomRepository.cs" />
     <Compile Include="DAL\Repositories\UserRepository.cs" />
     <Compile Include="Forms\frmLogin.cs">
       <SubType>Form</SubType>
@@ -140,6 +141,9 @@
     <Compile Include="Forms\Shared\frmUserEdit.Designer.cs">
       <DependentUpon>frmUserEdit.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Shared\frmRoomEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="BLL\Services\AppointmentService.cs" />
     <Compile Include="BLL\Services\AuthenticatedUser.cs" />
     <Compile Include="BLL\Services\AuthenticationService.cs" />
@@ -148,12 +152,15 @@
     <Compile Include="BLL\Services\DoctorService.cs" />
     <Compile Include="BLL\Services\PatientService.cs" />
     <Compile Include="BLL\Services\ReportService.cs" />
+    <Compile Include="BLL\Services\RoomService.cs" />
     <Compile Include="BLL\Services\UserService.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\UserSession.cs" />
     <Compile Include="Helpers\AuthorizationHelper.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
+    <Compile Include="Helpers\ThemeManager.cs" />
     <Compile Include="Helpers\ExportHelper.cs" />
+    <Compile Include="Models\Admission.cs" />
     <Compile Include="Models\Appointment.cs" />
     <Compile Include="Models\AppointmentHistory.cs" />
     <Compile Include="Models\BindableBase.cs" />
@@ -168,6 +175,7 @@
     <Compile Include="Models\MedicalHistory.cs" />
     <Compile Include="Models\Medicine.cs" />
     <Compile Include="Models\MedicineCategory.cs" />
+    <Compile Include="Models\LookupItem.cs" />
     <Compile Include="Models\Patient.cs" />
     <Compile Include="Models\PatientContact.cs" />
     <Compile Include="Models\Payment.cs" />
@@ -180,6 +188,7 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\UserDetail.cs" />
     <Compile Include="Models\UserRole.cs" />
+    <Compile Include="Models\Room.cs" />
     <Compile Include="UserControls\ucHeader.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -233,6 +242,9 @@
     </Compile>
     <Compile Include="UserControls\ucReports.Designer.cs">
       <DependentUpon>ucReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ucRooms.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UserControls\ucUsers.cs">
       <SubType>UserControl</SubType>

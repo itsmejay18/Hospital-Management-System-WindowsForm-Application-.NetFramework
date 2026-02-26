@@ -14,6 +14,7 @@ namespace HospitalManagementSystem.Forms
         {
             InitializeComponent();
             _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+            ApplyTheme();
             HookNavigation();
         }
 
@@ -23,6 +24,7 @@ namespace HospitalManagementSystem.Forms
             ucNavigation1.PatientsClicked += (_, __) => ShowPatients();
             ucNavigation1.DoctorsClicked += (_, __) => ShowDoctors();
             ucNavigation1.AppointmentsClicked += (_, __) => ShowAppointments();
+            ucNavigation1.RoomsClicked += (_, __) => ShowRooms();
             ucNavigation1.BillingClicked += (_, __) => ShowBilling();
             ucNavigation1.UsersClicked += (_, __) => ShowUsers();
             ucNavigation1.ReportsClicked += (_, __) => ShowReports();
@@ -41,6 +43,7 @@ namespace HospitalManagementSystem.Forms
         private void LoadModule(UserControl control, string title)
         {
             pnlContent.Controls.Clear();
+            ThemeManager.ApplyControlTheme(control);
             control.Dock = DockStyle.Fill;
             pnlContent.Controls.Add(control);
             ucHeader1.SetTitle(title);
@@ -79,6 +82,11 @@ namespace HospitalManagementSystem.Forms
             LoadModule(new ucBilling(), "Billing");
         }
 
+        private void ShowRooms()
+        {
+            LoadModule(new ucRooms(), "Rooms & Occupancy");
+        }
+
         private void ShowReports()
         {
             LoadModule(new ucReports(), "Reports");
@@ -111,6 +119,16 @@ namespace HospitalManagementSystem.Forms
             }
 
             Close();
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyFormTheme(this, styleChildren: false);
+            pnlLeft.BackColor = ThemeManager.Colors.Sidebar;
+            pnlTop.BackColor = ThemeManager.Colors.Surface;
+            pnlContent.BackColor = ThemeManager.Colors.Background;
+            statusStrip1.BackColor = ThemeManager.Colors.Surface;
+            lblStatus.ForeColor = ThemeManager.Colors.TextSecondary;
         }
     }
 }

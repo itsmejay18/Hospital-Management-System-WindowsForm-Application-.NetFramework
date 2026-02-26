@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.UserControls
 {
@@ -8,6 +9,7 @@ namespace HospitalManagementSystem.UserControls
         public ucHeader()
         {
             InitializeComponent();
+            ApplyTheme();
         }
 
         public event EventHandler LogoutClicked;
@@ -25,6 +27,11 @@ namespace HospitalManagementSystem.UserControls
         private void btnLogout_Click(object sender, EventArgs e)
         {
             LogoutClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.StyleHeaderBar(this, lblTitle, lblUser, btnLogout);
         }
     }
 }

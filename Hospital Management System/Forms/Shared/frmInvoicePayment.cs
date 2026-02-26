@@ -13,6 +13,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmInvoicePayment(int invoiceId)
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
             _invoiceId = invoiceId;
             cboMethod.SelectedIndex = 0;
         }

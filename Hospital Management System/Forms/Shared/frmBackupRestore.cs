@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.Forms.Shared
 {
@@ -10,6 +11,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmBackupRestore()
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
         }
 
         private void btnBackup_Click(object sender, EventArgs e)

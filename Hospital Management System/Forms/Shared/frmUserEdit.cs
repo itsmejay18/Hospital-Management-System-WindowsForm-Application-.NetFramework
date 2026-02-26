@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.Forms.Shared
@@ -21,6 +22,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmUserEdit(User user)
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
             _user = user;
             Load += frmUserEdit_Load;
             BindData();

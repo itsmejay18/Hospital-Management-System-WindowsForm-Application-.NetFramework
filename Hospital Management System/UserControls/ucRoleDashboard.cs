@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.UserControls
 {
@@ -8,6 +9,7 @@ namespace HospitalManagementSystem.UserControls
         public ucRoleDashboard()
         {
             InitializeComponent();
+            ApplyTheme();
         }
 
         public void Configure(string roleName, string username)
@@ -36,6 +38,12 @@ namespace HospitalManagementSystem.UserControls
             }
 
             return "Use the left menu to access your allowed modules.";
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
+            ThemeManager.StyleCardPanel(pnlCard);
         }
     }
 }

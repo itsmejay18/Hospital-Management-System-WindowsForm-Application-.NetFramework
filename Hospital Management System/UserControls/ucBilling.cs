@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.UserControls
@@ -14,6 +15,7 @@ namespace HospitalManagementSystem.UserControls
         public ucBilling()
         {
             InitializeComponent();
+            ApplyTheme();
             dgvBilling.AutoGenerateColumns = false;
             dgvBilling.DataSource = _invoices;
             Load += ucBilling_Load;
@@ -59,6 +61,11 @@ namespace HospitalManagementSystem.UserControls
             {
                 UseWaitCursor = false;
             }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
         }
     }
 }

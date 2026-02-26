@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.Forms.Shared
@@ -18,6 +19,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmPatientEdit(Patient patient)
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
             _patient = patient;
             BindData();
         }

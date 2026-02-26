@@ -18,7 +18,8 @@ namespace HospitalManagementSystem.Forms
         private void SetupForm()
         {
             txtPassword.UseSystemPasswordChar = true;
-            lblStatus.Text = "Ready";
+            ApplyTheme();
+            lblStatus.Text = "Ready - MySQL";
             AcceptButton = btnLogin;
         }
 
@@ -39,12 +40,16 @@ namespace HospitalManagementSystem.Forms
                 }
 
                 errorProvider1.Clear();
+                lblStatus.Text = "Connecting to MySQL...";
+                await TestDatabaseConnectionAsync().ConfigureAwait(true);
+                lblStatus.Text = "Authenticating...";
                 var authenticatedUser = await _authenticationService
                     .LoginAsync(txtUsername.Text.Trim(), txtPassword.Text)
                     .ConfigureAwait(true);
                 if (authenticatedUser == null)
                 {
                     MessageBox.Show("Invalid credentials.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    lblStatus.Text = "Authentication failed.";
                     return;
                 }
 
@@ -57,12 +62,27 @@ namespace HospitalManagementSystem.Forms
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = "Connection or login failed.";
             }
         }
 
         private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
         {
             txtPassword.UseSystemPasswordChar = !chkShowPassword.Checked;
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyFormTheme(this, styleChildren: false);
+            ThemeManager.StyleCardPanel(pnlContainer, 16);
+            ThemeManager.ApplyControlTheme(pnlContainer);
+        }
+
+        private static async System.Threading.Tasks.Task TestDatabaseConnectionAsync()
+        {
+            using (var connection = await DAL.DatabaseConnection.Instance.OpenConnectionAsync().ConfigureAwait(false))
+            {
+            }
         }
     }
 }

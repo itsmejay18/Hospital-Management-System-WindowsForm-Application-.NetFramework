@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Windows.Forms;
 using HospitalManagementSystem.DAL;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.Forms.Shared
 {
@@ -10,6 +11,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmAuditLog()
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
             Load += frmAuditLog_Load;
         }
 

@@ -17,15 +17,8 @@ namespace HospitalManagementSystem.DAL
         private static readonly Lazy<DatabaseConnection> InstanceValue =
             new Lazy<DatabaseConnection>(() => new DatabaseConnection());
 
-        private readonly string _connectionString;
-
         private DatabaseConnection()
         {
-            _connectionString = ConfigurationManager.ConnectionStrings["HospitalDB"]?.ConnectionString;
-            if (string.IsNullOrWhiteSpace(_connectionString))
-            {
-                throw new InvalidOperationException("HospitalDB connection string is missing in App.config.");
-            }
         }
 
         /// <summary>
@@ -41,7 +34,7 @@ namespace HospitalManagementSystem.DAL
         {
             try
             {
-                var connection = new MySqlConnection(_connectionString);
+                var connection = new MySqlConnection(ResolveConnectionString());
                 connection.Open();
                 return connection;
             }
@@ -61,7 +54,7 @@ namespace HospitalManagementSystem.DAL
         {
             try
             {
-                var connection = new MySqlConnection(_connectionString);
+                var connection = new MySqlConnection(ResolveConnectionString());
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 return connection;
             }
@@ -213,6 +206,17 @@ namespace HospitalManagementSystem.DAL
                     await CloseConnectionAsync(connection).ConfigureAwait(false);
                 }
             }
+        }
+
+        private static string ResolveConnectionString()
+        {
+            var connectionString = ConfigurationManager.ConnectionStrings["HospitalDB"]?.ConnectionString;
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                return connectionString;
+            }
+
+            throw new InvalidOperationException("No valid database connection string was found in App.config.");
         }
 
         /// <summary>

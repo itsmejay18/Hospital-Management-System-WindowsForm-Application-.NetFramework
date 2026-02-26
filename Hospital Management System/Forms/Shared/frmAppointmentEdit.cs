@@ -24,6 +24,7 @@ namespace HospitalManagementSystem.Forms.Shared
         public frmAppointmentEdit(Appointment appointment)
         {
             InitializeComponent();
+            ThemeManager.ApplyFormTheme(this);
             _appointment = appointment;
             Load += frmAppointmentEdit_Load;
             BindData();

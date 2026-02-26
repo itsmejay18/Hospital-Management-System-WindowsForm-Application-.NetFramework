@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.UserControls
@@ -14,6 +15,7 @@ namespace HospitalManagementSystem.UserControls
         public ucAppointments()
         {
             InitializeComponent();
+            ApplyTheme();
             dgvAppointments.AutoGenerateColumns = false;
             dgvAppointments.DataSource = _appointments;
             Load += ucAppointments_Load;
@@ -104,6 +106,11 @@ namespace HospitalManagementSystem.UserControls
             {
                 UseWaitCursor = false;
             }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
         }
     }
 }

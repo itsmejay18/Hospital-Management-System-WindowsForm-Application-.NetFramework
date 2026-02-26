@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Forms.Shared;
+using HospitalManagementSystem.Helpers;
 using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.UserControls
@@ -17,6 +18,7 @@ namespace HospitalManagementSystem.UserControls
         public ucUsers()
         {
             InitializeComponent();
+            ApplyTheme();
             dgvUsers.AutoGenerateColumns = false;
             dgvUsers.DataSource = _users;
 
@@ -107,6 +109,11 @@ namespace HospitalManagementSystem.UserControls
                 await _service.DeleteAsync(user.UserID).ConfigureAwait(true);
                 await ReloadAsync(txtSearch.Text.Trim()).ConfigureAwait(true);
             }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
         }
     }
 }

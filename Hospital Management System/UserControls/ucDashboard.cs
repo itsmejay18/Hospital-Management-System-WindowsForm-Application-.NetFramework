@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.UserControls
 {
@@ -11,6 +12,7 @@ namespace HospitalManagementSystem.UserControls
         public ucDashboard()
         {
             InitializeComponent();
+            ApplyTheme();
             Load += ucDashboard_Load;
         }
 
@@ -35,6 +37,18 @@ namespace HospitalManagementSystem.UserControls
             {
                 UseWaitCursor = false;
             }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
+            ThemeManager.StyleCardPanel(pnlPatients);
+            ThemeManager.StyleCardPanel(pnlDoctors);
+            ThemeManager.StyleCardPanel(pnlRevenue);
+
+            lblPatientsValue.Font = ThemeManager.Fonts.Kpi;
+            lblDoctorsValue.Font = ThemeManager.Fonts.Kpi;
+            lblRevenueValue.Font = ThemeManager.Fonts.Kpi;
         }
     }
 }

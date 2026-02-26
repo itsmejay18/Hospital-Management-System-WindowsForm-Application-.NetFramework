@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HospitalManagementSystem.DAL.Repositories;
 using HospitalManagementSystem.Helpers;
@@ -20,6 +21,30 @@ namespace HospitalManagementSystem.BLL.Services
         public Task<List<Patient>> GetAllAsync()
         {
             return _repository.GetAllPatientsAsync();
+        }
+
+        /// <summary>
+        /// Searches patients by code or name.
+        /// </summary>
+        public async Task<List<Patient>> SearchAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return await GetAllAsync().ConfigureAwait(false);
+            }
+
+            var result = await _repository.SearchPatientsAsync(
+                    query.Trim(),
+                    query.Trim(),
+                    query.Trim(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    1,
+                    300)
+                .ConfigureAwait(false);
+            return result.Items.ToList();
         }
 
         /// <summary>

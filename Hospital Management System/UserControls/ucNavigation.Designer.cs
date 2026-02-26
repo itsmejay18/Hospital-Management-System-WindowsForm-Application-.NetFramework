@@ -11,6 +11,7 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.Button btnPatients;
         private System.Windows.Forms.Button btnDoctors;
         private System.Windows.Forms.Button btnAppointments;
+        private System.Windows.Forms.Button btnRooms;
         private System.Windows.Forms.Button btnBilling;
         private System.Windows.Forms.Button btnUsers;
         private System.Windows.Forms.Button btnReports;
@@ -34,6 +35,7 @@ namespace HospitalManagementSystem.UserControls
             this.btnPatients = new System.Windows.Forms.Button();
             this.btnDoctors = new System.Windows.Forms.Button();
             this.btnAppointments = new System.Windows.Forms.Button();
+            this.btnRooms = new System.Windows.Forms.Button();
             this.btnBilling = new System.Windows.Forms.Button();
             this.btnUsers = new System.Windows.Forms.Button();
             this.btnReports = new System.Windows.Forms.Button();
@@ -69,6 +71,7 @@ namespace HospitalManagementSystem.UserControls
             this.flpMenu.Controls.Add(this.btnPatients);
             this.flpMenu.Controls.Add(this.btnDoctors);
             this.flpMenu.Controls.Add(this.btnAppointments);
+            this.flpMenu.Controls.Add(this.btnRooms);
             this.flpMenu.Controls.Add(this.btnBilling);
             this.flpMenu.Controls.Add(this.btnUsers);
             this.flpMenu.Controls.Add(this.btnReports);
@@ -126,13 +129,24 @@ namespace HospitalManagementSystem.UserControls
             this.btnAppointments.UseVisualStyleBackColor = true;
             this.btnAppointments.Click += new System.EventHandler(this.btnAppointments_Click);
             // 
+            // btnRooms
+            // 
+            this.btnRooms.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRooms.Location = new System.Drawing.Point(11, 163);
+            this.btnRooms.Name = "btnRooms";
+            this.btnRooms.Size = new System.Drawing.Size(190, 32);
+            this.btnRooms.TabIndex = 4;
+            this.btnRooms.Text = "Rooms";
+            this.btnRooms.UseVisualStyleBackColor = true;
+            this.btnRooms.Click += new System.EventHandler(this.btnRooms_Click);
+            // 
             // btnBilling
             // 
             this.btnBilling.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBilling.Location = new System.Drawing.Point(11, 163);
+            this.btnBilling.Location = new System.Drawing.Point(11, 201);
             this.btnBilling.Name = "btnBilling";
             this.btnBilling.Size = new System.Drawing.Size(190, 32);
-            this.btnBilling.TabIndex = 4;
+            this.btnBilling.TabIndex = 5;
             this.btnBilling.Text = "Billing";
             this.btnBilling.UseVisualStyleBackColor = true;
             this.btnBilling.Click += new System.EventHandler(this.btnBilling_Click);
@@ -140,10 +154,10 @@ namespace HospitalManagementSystem.UserControls
             // btnUsers
             // 
             this.btnUsers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUsers.Location = new System.Drawing.Point(11, 201);
+            this.btnUsers.Location = new System.Drawing.Point(11, 239);
             this.btnUsers.Name = "btnUsers";
             this.btnUsers.Size = new System.Drawing.Size(190, 32);
-            this.btnUsers.TabIndex = 5;
+            this.btnUsers.TabIndex = 6;
             this.btnUsers.Text = "Users";
             this.btnUsers.UseVisualStyleBackColor = true;
             this.btnUsers.Click += new System.EventHandler(this.btnUsers_Click);
@@ -151,10 +165,10 @@ namespace HospitalManagementSystem.UserControls
             // btnReports
             // 
             this.btnReports.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnReports.Location = new System.Drawing.Point(11, 239);
+            this.btnReports.Location = new System.Drawing.Point(11, 277);
             this.btnReports.Name = "btnReports";
             this.btnReports.Size = new System.Drawing.Size(190, 32);
-            this.btnReports.TabIndex = 6;
+            this.btnReports.TabIndex = 7;
             this.btnReports.Text = "Reports";
             this.btnReports.UseVisualStyleBackColor = true;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);
@@ -162,10 +176,10 @@ namespace HospitalManagementSystem.UserControls
             // btnLogout
             // 
             this.btnLogout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogout.Location = new System.Drawing.Point(11, 277);
+            this.btnLogout.Location = new System.Drawing.Point(11, 315);
             this.btnLogout.Name = "btnLogout";
             this.btnLogout.Size = new System.Drawing.Size(190, 32);
-            this.btnLogout.TabIndex = 7;
+            this.btnLogout.TabIndex = 8;
             this.btnLogout.Text = "Logout";
             this.btnLogout.UseVisualStyleBackColor = true;
             this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);

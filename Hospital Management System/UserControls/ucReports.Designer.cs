@@ -66,7 +66,13 @@ namespace HospitalManagementSystem.UserControls
             "Appointments",
             "Billing",
             "Pharmacy",
-            "DoctorPerformance"});
+            "DoctorPerformance",
+            "RoomOccupancy",
+            "DoctorSchedules",
+            "PaymentsPerPatient",
+            "PatientMedicines",
+            "LaboratoryBilling",
+            "StatisticalSummary"});
             this.cboReport.Location = new System.Drawing.Point(12, 12);
             this.cboReport.Name = "cboReport";
             this.cboReport.Size = new System.Drawing.Size(180, 23);

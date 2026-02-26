@@ -12,6 +12,7 @@ namespace HospitalManagementSystem.UserControls
         public ucReports()
         {
             InitializeComponent();
+            ApplyTheme();
             btnExportExcel.Click += btnExportExcel_Click;
             btnExportCsv.Click += btnExportCsv_Click;
             btnExportPdf.Click += btnExportPdf_Click;
@@ -68,6 +69,7 @@ namespace HospitalManagementSystem.UserControls
             dgvReport.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvReport.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             dgvReport.AllowUserToResizeRows = false;
+            ThemeManager.StyleDataGridView(dgvReport);
         }
 
         private void ConfigureColumns()
@@ -84,6 +86,10 @@ namespace HospitalManagementSystem.UserControls
                     column.DefaultCellStyle.Format = "HH:mm:ss";
                 }
                 else if (header.IndexOf("Total", System.StringComparison.OrdinalIgnoreCase) >= 0
+                         || header.IndexOf("Amount", System.StringComparison.OrdinalIgnoreCase) >= 0
+                         || header.IndexOf("Balance", System.StringComparison.OrdinalIgnoreCase) >= 0
+                         || header.IndexOf("Paid", System.StringComparison.OrdinalIgnoreCase) >= 0
+                         || header.IndexOf("Invoiced", System.StringComparison.OrdinalIgnoreCase) >= 0
                          || header.IndexOf("Price", System.StringComparison.OrdinalIgnoreCase) >= 0
                          || header.IndexOf("Fee", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 {
@@ -147,6 +153,11 @@ namespace HospitalManagementSystem.UserControls
             {
                 dlg.ShowDialog(this);
             }
+        }
+
+        private void ApplyTheme()
+        {
+            ThemeManager.ApplyControlTheme(this);
         }
     }
 }
