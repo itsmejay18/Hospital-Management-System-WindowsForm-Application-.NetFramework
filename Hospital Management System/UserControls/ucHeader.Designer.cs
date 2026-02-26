@@ -28,7 +28,7 @@ namespace HospitalManagementSystem.UserControls
             // 
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.Location = new System.Drawing.Point(16, 20);
+            this.lblTitle.Location = new System.Drawing.Point(20, 30);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(169, 21);
             this.lblTitle.TabIndex = 0;
@@ -36,9 +36,9 @@ namespace HospitalManagementSystem.UserControls
             // 
             // lblUser
             // 
-            this.lblUser.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblUser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblUser.AutoSize = true;
-            this.lblUser.Location = new System.Drawing.Point(700, 23);
+            this.lblUser.Location = new System.Drawing.Point(626, 34);
             this.lblUser.Name = "lblUser";
             this.lblUser.Size = new System.Drawing.Size(75, 15);
             this.lblUser.TabIndex = 1;
@@ -46,9 +46,9 @@ namespace HospitalManagementSystem.UserControls
             // 
             // btnLogout
             // 
-            this.btnLogout.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.btnLogout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnLogout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogout.Location = new System.Drawing.Point(820, 18);
+            this.btnLogout.Location = new System.Drawing.Point(798, 28);
             this.btnLogout.Name = "btnLogout";
             this.btnLogout.Size = new System.Drawing.Size(80, 28);
             this.btnLogout.TabIndex = 2;
@@ -65,7 +65,7 @@ namespace HospitalManagementSystem.UserControls
             this.Controls.Add(this.lblUser);
             this.Controls.Add(this.lblTitle);
             this.Name = "ucHeader";
-            this.Size = new System.Drawing.Size(980, 64);
+            this.Size = new System.Drawing.Size(908, 86);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -32,6 +32,7 @@ namespace HospitalManagementSystem.UserControls
         private void ApplyTheme()
         {
             ThemeManager.StyleHeaderBar(this, lblTitle, lblUser, btnLogout);
+            btnLogout.Visible = false;
         }
     }
 }

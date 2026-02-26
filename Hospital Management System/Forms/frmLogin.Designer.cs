@@ -5,6 +5,7 @@ namespace HospitalManagementSystem.Forms
         private System.ComponentModel.IContainer components = null;
 
         private System.Windows.Forms.Panel pnlContainer;
+        private System.Windows.Forms.PictureBox picLogo;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblUsername;
         private System.Windows.Forms.TextBox txtUsername;
@@ -30,6 +31,7 @@ namespace HospitalManagementSystem.Forms
         {
             this.components = new System.ComponentModel.Container();
             this.pnlContainer = new System.Windows.Forms.Panel();
+            this.picLogo = new System.Windows.Forms.PictureBox();
             this.lblTitle = new System.Windows.Forms.Label();
             this.lblUsername = new System.Windows.Forms.Label();
             this.txtUsername = new System.Windows.Forms.TextBox();
@@ -41,6 +43,7 @@ namespace HospitalManagementSystem.Forms
             this.btnLogin = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.errorProvider1 = new System.Windows.Forms.ErrorProvider(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.pnlContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).BeginInit();
             this.SuspendLayout();
@@ -49,6 +52,7 @@ namespace HospitalManagementSystem.Forms
             // 
             this.pnlContainer.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.pnlContainer.BackColor = System.Drawing.Color.White;
+            this.pnlContainer.Controls.Add(this.picLogo);
             this.pnlContainer.Controls.Add(this.lblStatus);
             this.pnlContainer.Controls.Add(this.btnLogin);
             this.pnlContainer.Controls.Add(this.lnkForgot);
@@ -61,15 +65,24 @@ namespace HospitalManagementSystem.Forms
             this.pnlContainer.Controls.Add(this.lblTitle);
             this.pnlContainer.Location = new System.Drawing.Point(74, 58);
             this.pnlContainer.Name = "pnlContainer";
-            this.pnlContainer.Size = new System.Drawing.Size(460, 378);
+            this.pnlContainer.Size = new System.Drawing.Size(460, 460);
             this.pnlContainer.TabIndex = 0;
+            // 
+            // picLogo
+            // 
+            this.picLogo.Location = new System.Drawing.Point(170, 16);
+            this.picLogo.Name = "picLogo";
+            this.picLogo.Size = new System.Drawing.Size(120, 100);
+            this.picLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picLogo.TabIndex = 10;
+            this.picLogo.TabStop = false;
             // 
             // lblTitle
             // 
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(23)))), ((int)(((byte)(76)))), ((int)(((byte)(132)))));
-            this.lblTitle.Location = new System.Drawing.Point(26, 24);
+            this.lblTitle.Location = new System.Drawing.Point(127, 124);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(205, 30);
             this.lblTitle.TabIndex = 0;
@@ -78,7 +91,7 @@ namespace HospitalManagementSystem.Forms
             // lblUsername
             // 
             this.lblUsername.AutoSize = true;
-            this.lblUsername.Location = new System.Drawing.Point(28, 88);
+            this.lblUsername.Location = new System.Drawing.Point(28, 176);
             this.lblUsername.Name = "lblUsername";
             this.lblUsername.Size = new System.Drawing.Size(60, 15);
             this.lblUsername.TabIndex = 1;
@@ -86,7 +99,7 @@ namespace HospitalManagementSystem.Forms
             // 
             // txtUsername
             // 
-            this.txtUsername.Location = new System.Drawing.Point(31, 108);
+            this.txtUsername.Location = new System.Drawing.Point(31, 196);
             this.txtUsername.Name = "txtUsername";
             this.txtUsername.Size = new System.Drawing.Size(398, 23);
             this.txtUsername.TabIndex = 2;
@@ -94,7 +107,7 @@ namespace HospitalManagementSystem.Forms
             // lblPassword
             // 
             this.lblPassword.AutoSize = true;
-            this.lblPassword.Location = new System.Drawing.Point(28, 148);
+            this.lblPassword.Location = new System.Drawing.Point(28, 236);
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(57, 15);
             this.lblPassword.TabIndex = 3;
@@ -102,7 +115,7 @@ namespace HospitalManagementSystem.Forms
             // 
             // txtPassword
             // 
-            this.txtPassword.Location = new System.Drawing.Point(31, 168);
+            this.txtPassword.Location = new System.Drawing.Point(31, 256);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(398, 23);
             this.txtPassword.TabIndex = 4;
@@ -110,7 +123,7 @@ namespace HospitalManagementSystem.Forms
             // chkRemember
             // 
             this.chkRemember.AutoSize = true;
-            this.chkRemember.Location = new System.Drawing.Point(31, 206);
+            this.chkRemember.Location = new System.Drawing.Point(31, 294);
             this.chkRemember.Name = "chkRemember";
             this.chkRemember.Size = new System.Drawing.Size(105, 19);
             this.chkRemember.TabIndex = 5;
@@ -120,7 +133,7 @@ namespace HospitalManagementSystem.Forms
             // chkShowPassword
             // 
             this.chkShowPassword.AutoSize = true;
-            this.chkShowPassword.Location = new System.Drawing.Point(323, 206);
+            this.chkShowPassword.Location = new System.Drawing.Point(323, 294);
             this.chkShowPassword.Name = "chkShowPassword";
             this.chkShowPassword.Size = new System.Drawing.Size(106, 19);
             this.chkShowPassword.TabIndex = 6;
@@ -131,7 +144,7 @@ namespace HospitalManagementSystem.Forms
             // lnkForgot
             // 
             this.lnkForgot.AutoSize = true;
-            this.lnkForgot.Location = new System.Drawing.Point(31, 236);
+            this.lnkForgot.Location = new System.Drawing.Point(31, 324);
             this.lnkForgot.Name = "lnkForgot";
             this.lnkForgot.Size = new System.Drawing.Size(96, 15);
             this.lnkForgot.TabIndex = 7;
@@ -144,7 +157,7 @@ namespace HospitalManagementSystem.Forms
             this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnLogin.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnLogin.ForeColor = System.Drawing.Color.White;
-            this.btnLogin.Location = new System.Drawing.Point(31, 274);
+            this.btnLogin.Location = new System.Drawing.Point(31, 362);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.Size = new System.Drawing.Size(398, 36);
             this.btnLogin.TabIndex = 8;
@@ -156,7 +169,7 @@ namespace HospitalManagementSystem.Forms
             // 
             this.lblStatus.AutoSize = true;
             this.lblStatus.ForeColor = System.Drawing.Color.Gray;
-            this.lblStatus.Location = new System.Drawing.Point(31, 330);
+            this.lblStatus.Location = new System.Drawing.Point(31, 418);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(38, 15);
             this.lblStatus.TabIndex = 9;
@@ -184,6 +197,7 @@ namespace HospitalManagementSystem.Forms
             this.TopMost = false;
             this.pnlContainer.ResumeLayout(false);
             this.pnlContainer.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picLogo)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider1)).EndInit();
             this.ResumeLayout(false);
 

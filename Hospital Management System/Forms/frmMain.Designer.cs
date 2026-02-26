@@ -69,7 +69,7 @@ namespace HospitalManagementSystem.Forms
             this.pnlLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.pnlLeft.Location = new System.Drawing.Point(0, 24);
             this.pnlLeft.Name = "pnlLeft";
-            this.pnlLeft.Size = new System.Drawing.Size(220, 654);
+            this.pnlLeft.Size = new System.Drawing.Size(292, 654);
             this.pnlLeft.TabIndex = 2;
             // 
             // pnlTop
@@ -77,18 +77,18 @@ namespace HospitalManagementSystem.Forms
             this.pnlTop.BackColor = System.Drawing.Color.White;
             this.pnlTop.Controls.Add(this.ucHeader1);
             this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlTop.Location = new System.Drawing.Point(220, 24);
+            this.pnlTop.Location = new System.Drawing.Point(292, 24);
             this.pnlTop.Name = "pnlTop";
-            this.pnlTop.Size = new System.Drawing.Size(980, 64);
+            this.pnlTop.Size = new System.Drawing.Size(908, 86);
             this.pnlTop.TabIndex = 3;
             // 
             // pnlContent
             // 
             this.pnlContent.BackColor = System.Drawing.Color.WhiteSmoke;
             this.pnlContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlContent.Location = new System.Drawing.Point(220, 88);
+            this.pnlContent.Location = new System.Drawing.Point(292, 110);
             this.pnlContent.Name = "pnlContent";
-            this.pnlContent.Size = new System.Drawing.Size(980, 590);
+            this.pnlContent.Size = new System.Drawing.Size(908, 568);
             this.pnlContent.TabIndex = 4;
             // 
             // ucNavigation1
@@ -96,7 +96,7 @@ namespace HospitalManagementSystem.Forms
             this.ucNavigation1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ucNavigation1.Location = new System.Drawing.Point(0, 0);
             this.ucNavigation1.Name = "ucNavigation1";
-            this.ucNavigation1.Size = new System.Drawing.Size(220, 654);
+            this.ucNavigation1.Size = new System.Drawing.Size(292, 654);
             this.ucNavigation1.TabIndex = 0;
             // 
             // ucHeader1
@@ -104,7 +104,7 @@ namespace HospitalManagementSystem.Forms
             this.ucHeader1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ucHeader1.Location = new System.Drawing.Point(0, 0);
             this.ucHeader1.Name = "ucHeader1";
-            this.ucHeader1.Size = new System.Drawing.Size(980, 64);
+            this.ucHeader1.Size = new System.Drawing.Size(908, 86);
             this.ucHeader1.TabIndex = 0;
             // 
             // frmMain

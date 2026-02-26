@@ -76,6 +76,7 @@ namespace HospitalManagementSystem.Forms
             ThemeManager.ApplyFormTheme(this, styleChildren: false);
             ThemeManager.ApplyControlTheme(pnlContainer);
             ThemeManager.StyleCardPanel(pnlContainer, 16);
+            ThemeManager.ApplyBrandingLogo(picLogo);
         }
 
         private static async System.Threading.Tasks.Task TestDatabaseConnectionAsync()

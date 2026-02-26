@@ -158,6 +158,15 @@ namespace HospitalManagementSystem.UserControls
         private void ApplyTheme()
         {
             ThemeManager.ApplyControlTheme(this);
+            ThemeManager.StyleModuleBarPanel(pnlButtons);
+            ThemeManager.StyleButton(btnLoad, ThemeButtonKind.Primary);
+            ThemeManager.StyleButton(btnExportExcel, ThemeButtonKind.Secondary);
+            ThemeManager.StyleButton(btnExportCsv, ThemeButtonKind.Secondary);
+            ThemeManager.StyleButton(btnExportPdf, ThemeButtonKind.Secondary);
+            ThemeManager.StyleButton(btnUsers, ThemeButtonKind.Secondary);
+            ThemeManager.StyleButton(btnAuditLog, ThemeButtonKind.Secondary);
+            ThemeManager.StyleButton(btnBackup, ThemeButtonKind.Secondary);
+            ThemeManager.StyleComboBox(cboReport);
         }
     }
 }

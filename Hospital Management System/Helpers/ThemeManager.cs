@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 
 namespace HospitalManagementSystem.Helpers
@@ -13,29 +14,36 @@ namespace HospitalManagementSystem.Helpers
     {
         private static readonly Dictionary<Control, EventHandler> RoundedResizeHandlers =
             new Dictionary<Control, EventHandler>();
+        private static readonly HashSet<SplitContainer> ManagedMasterDetailSplitters =
+            new HashSet<SplitContainer>();
+        private static Image BrandingLogoCache;
+        private static bool BrandingLogoLoadAttempted;
+        private static Icon BrandingIconCache;
+        private static bool BrandingIconLoadAttempted;
 
         /// <summary>
         /// Semantic color palette.
         /// </summary>
         public static class Colors
         {
-            public static readonly Color Primary = ColorTranslator.FromHtml("#4F46E5");
-            public static readonly Color PrimaryHover = ColorTranslator.FromHtml("#4338CA");
-            public static readonly Color PrimaryPressed = ColorTranslator.FromHtml("#3730A3");
-            public static readonly Color PrimarySoft = ColorTranslator.FromHtml("#E0E7FF");
-            public static readonly Color Background = ColorTranslator.FromHtml("#F3F4F6");
+            public static readonly Color Primary = ColorTranslator.FromHtml("#79BFE8");
+            public static readonly Color PrimaryHover = ColorTranslator.FromHtml("#67B3E4");
+            public static readonly Color PrimaryPressed = ColorTranslator.FromHtml("#56A6DD");
+            public static readonly Color PrimarySoft = ColorTranslator.FromHtml("#E9F6FF");
+            public static readonly Color Background = ColorTranslator.FromHtml("#EEF7FF");
             public static readonly Color Surface = Color.White;
-            public static readonly Color SurfaceMuted = ColorTranslator.FromHtml("#EEF2FF");
-            public static readonly Color Border = ColorTranslator.FromHtml("#E5E7EB");
-            public static readonly Color TextPrimary = ColorTranslator.FromHtml("#111827");
-            public static readonly Color TextSecondary = ColorTranslator.FromHtml("#6B7280");
-            public static readonly Color Danger = ColorTranslator.FromHtml("#DC2626");
-            public static readonly Color DangerHover = ColorTranslator.FromHtml("#B91C1C");
-            public static readonly Color Sidebar = ColorTranslator.FromHtml("#111827");
-            public static readonly Color SidebarItem = ColorTranslator.FromHtml("#1F2937");
-            public static readonly Color SidebarItemHover = ColorTranslator.FromHtml("#374151");
-            public static readonly Color SidebarItemActive = ColorTranslator.FromHtml("#4F46E5");
-            public static readonly Color SidebarText = ColorTranslator.FromHtml("#E5E7EB");
+            public static readonly Color SurfaceMuted = ColorTranslator.FromHtml("#F4FAFF");
+            public static readonly Color Border = ColorTranslator.FromHtml("#CFE3F3");
+            public static readonly Color TextPrimary = ColorTranslator.FromHtml("#1F3D57");
+            public static readonly Color TextSecondary = ColorTranslator.FromHtml("#6A8AA3");
+            public static readonly Color Danger = ColorTranslator.FromHtml("#5AAEDD");
+            public static readonly Color DangerHover = ColorTranslator.FromHtml("#4A9BC9");
+            public static readonly Color Sidebar = ColorTranslator.FromHtml("#FFFFFF");
+            public static readonly Color SidebarItem = ColorTranslator.FromHtml("#FFFFFF");
+            public static readonly Color SidebarItemHover = ColorTranslator.FromHtml("#F2F9FF");
+            public static readonly Color SidebarItemActive = ColorTranslator.FromHtml("#79BFE8");
+            public static readonly Color SidebarText = ColorTranslator.FromHtml("#1F3D57");
+            public static readonly Color SidebarBorder = ColorTranslator.FromHtml("#D6E9F8");
         }
 
         /// <summary>
@@ -62,6 +70,7 @@ namespace HospitalManagementSystem.Helpers
             form.BackColor = Colors.Background;
             form.ForeColor = Colors.TextPrimary;
             form.Font = Fonts.Regular;
+            ApplyBrandingIcon(form);
             StyleStripControls(form);
 
             if (styleChildren)
@@ -96,6 +105,9 @@ namespace HospitalManagementSystem.Helpers
             if (headerRoot != null)
             {
                 headerRoot.BackColor = Colors.Surface;
+                headerRoot.Padding = new Padding(20, 0, 20, 0);
+                headerRoot.Paint -= DrawSectionBottomBorder;
+                headerRoot.Paint += DrawSectionBottomBorder;
             }
 
             if (titleLabel != null)
@@ -124,13 +136,13 @@ namespace HospitalManagementSystem.Helpers
         {
             if (headerPanel != null)
             {
-                headerPanel.BackColor = Colors.Primary;
+                headerPanel.BackColor = Colors.Sidebar;
             }
 
             if (appNameLabel != null)
             {
-                appNameLabel.ForeColor = Color.White;
-                appNameLabel.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Regular);
+                appNameLabel.ForeColor = Colors.TextPrimary;
+                appNameLabel.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular);
             }
 
             if (menuPanel != null)
@@ -167,27 +179,34 @@ namespace HospitalManagementSystem.Helpers
             }
 
             button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 0;
-            button.FlatAppearance.MouseOverBackColor = isDanger ? Colors.DangerHover : Colors.SidebarItemHover;
-            button.FlatAppearance.MouseDownBackColor = isDanger ? Colors.Danger : Colors.PrimaryPressed;
+            button.FlatAppearance.BorderSize = 1;
+            button.FlatAppearance.BorderColor = isDanger
+                ? ColorTranslator.FromHtml("#B7DCF4")
+                : isActive
+                    ? Colors.Primary
+                    : Colors.SidebarBorder;
+            button.FlatAppearance.MouseOverBackColor = isDanger ? ColorTranslator.FromHtml("#EEF8FF") : Colors.SidebarItemHover;
+            button.FlatAppearance.MouseDownBackColor = isDanger ? ColorTranslator.FromHtml("#E1F2FF") : Colors.PrimarySoft;
             button.Font = Fonts.Medium;
+            button.ImageAlign = ContentAlignment.MiddleLeft;
             button.TextAlign = ContentAlignment.MiddleLeft;
             button.TextImageRelation = TextImageRelation.ImageBeforeText;
             button.Padding = new Padding(12, 0, 0, 0);
-            button.Margin = new Padding(3, 5, 3, 0);
+            button.Margin = new Padding(0, 0, 0, 6);
             button.Cursor = Cursors.Hand;
-            button.Width = 194;
-            button.Height = 40;
+            var parentWidth = button.Parent?.ClientSize.Width ?? 220;
+            button.Width = Math.Max(170, parentWidth - 16);
+            button.Height = 44;
 
             if (isDanger)
             {
-                button.BackColor = Colors.Danger;
-                button.ForeColor = Color.White;
+                button.BackColor = Colors.SidebarItem;
+                button.ForeColor = Colors.Danger;
                 return;
             }
 
             button.BackColor = isActive ? Colors.SidebarItemActive : Colors.SidebarItem;
-            button.ForeColor = Color.White;
+            button.ForeColor = isActive ? Color.White : Colors.TextPrimary;
         }
 
         /// <summary>
@@ -249,8 +268,6 @@ namespace HospitalManagementSystem.Helpers
                     button.FlatAppearance.MouseDownBackColor = Colors.PrimarySoft;
                     break;
             }
-
-            ApplyRoundedCorners(button, 8);
         }
 
         /// <summary>
@@ -277,9 +294,10 @@ namespace HospitalManagementSystem.Helpers
             grid.RowTemplate.Height = 30;
             grid.ColumnHeadersHeight = 36;
 
-            grid.ColumnHeadersDefaultCellStyle.BackColor = Colors.Primary;
+            var headerColor = ColorTranslator.FromHtml("#74B9E6");
+            grid.ColumnHeadersDefaultCellStyle.BackColor = headerColor;
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Colors.Primary;
+            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = headerColor;
             grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.White;
             grid.ColumnHeadersDefaultCellStyle.Font = Fonts.Medium;
             grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
@@ -289,9 +307,67 @@ namespace HospitalManagementSystem.Helpers
             grid.DefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
             grid.DefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
             grid.DefaultCellStyle.Font = Fonts.Regular;
-            grid.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F9FAFB");
+            grid.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F7FCFF");
             grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
             grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
+        }
+
+        /// <summary>
+        /// Styles the standard top utility bars used by modules.
+        /// </summary>
+        public static void StyleModuleBarPanel(Panel panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            panel.BackColor = Colors.Surface;
+            panel.BorderStyle = BorderStyle.FixedSingle;
+        }
+
+        /// <summary>
+        /// Applies a consistent master/detail layout style for data modules.
+        /// </summary>
+        public static void StyleMasterDetailModule(
+            Control root,
+            Panel searchPanel,
+            Panel actionsPanel,
+            SplitContainer splitContainer,
+            GroupBox detailsGroup,
+            Label detailsHint = null)
+        {
+            if (root != null)
+            {
+                root.BackColor = Colors.Background;
+            }
+
+            StyleModuleBarPanel(searchPanel);
+            StyleModuleBarPanel(actionsPanel);
+
+            if (splitContainer != null)
+            {
+                splitContainer.BackColor = Colors.Border;
+                splitContainer.Panel1.BackColor = Colors.Surface;
+                splitContainer.Panel2.BackColor = Colors.Surface;
+                splitContainer.SplitterWidth = 4;
+                splitContainer.Panel1MinSize = Math.Max(splitContainer.Panel1MinSize, 520);
+                splitContainer.Panel2MinSize = Math.Max(splitContainer.Panel2MinSize, 340);
+                splitContainer.FixedPanel = FixedPanel.Panel2;
+                BalanceMasterDetailSplitter(splitContainer, 420);
+            }
+
+            if (detailsGroup != null)
+            {
+                StyleGroupBox(detailsGroup);
+                detailsGroup.Padding = new Padding(12, 10, 12, 10);
+            }
+
+            if (detailsHint != null)
+            {
+                detailsHint.Font = Fonts.Regular;
+                detailsHint.ForeColor = Colors.TextSecondary;
+            }
         }
 
         /// <summary>
@@ -522,6 +598,37 @@ namespace HospitalManagementSystem.Helpers
         }
 
         /// <summary>
+        /// Styles group box containers.
+        /// </summary>
+        public static void StyleGroupBox(GroupBox groupBox)
+        {
+            if (groupBox == null)
+            {
+                return;
+            }
+
+            groupBox.Font = Fonts.Medium;
+            groupBox.ForeColor = Colors.TextPrimary;
+            groupBox.BackColor = Colors.Surface;
+        }
+
+        /// <summary>
+        /// Styles split layout containers.
+        /// </summary>
+        public static void StyleSplitContainer(SplitContainer splitContainer)
+        {
+            if (splitContainer == null)
+            {
+                return;
+            }
+
+            splitContainer.BackColor = Colors.Border;
+            splitContainer.Panel1.BackColor = Colors.Surface;
+            splitContainer.Panel2.BackColor = Colors.Surface;
+            splitContainer.SplitterWidth = Math.Max(splitContainer.SplitterWidth, 4);
+        }
+
+        /// <summary>
         /// Styles labels.
         /// </summary>
         public static void StyleLabel(Label label)
@@ -575,6 +682,40 @@ namespace HospitalManagementSystem.Helpers
             }
         }
 
+        /// <summary>
+        /// Applies the application branding logo to a picture box when available.
+        /// </summary>
+        public static void ApplyBrandingLogo(PictureBox pictureBox)
+        {
+            if (pictureBox == null)
+            {
+                return;
+            }
+
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox.BackColor = Color.Transparent;
+            pictureBox.Image = GetBrandingLogo();
+        }
+
+        /// <summary>
+        /// Applies the application branding icon to a form when available.
+        /// </summary>
+        public static void ApplyBrandingIcon(Form form)
+        {
+            if (form == null)
+            {
+                return;
+            }
+
+            var icon = GetBrandingIcon();
+            if (icon == null)
+            {
+                return;
+            }
+
+            form.Icon = (Icon)icon.Clone();
+        }
+
         private static void DrawCardBorder(object sender, PaintEventArgs e)
         {
             if (!(sender is Panel panel))
@@ -584,11 +725,147 @@ namespace HospitalManagementSystem.Helpers
 
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             var rect = new Rectangle(0, 0, panel.Width - 1, panel.Height - 1);
-            using (var path = CreateRoundedPath(rect, 12))
+            using (var path = CreateRoundedPath(rect, 10))
             using (var pen = new Pen(Colors.Border))
             {
                 e.Graphics.DrawPath(pen, path);
             }
+        }
+
+        private static void DrawSectionBottomBorder(object sender, PaintEventArgs e)
+        {
+            if (!(sender is Control control))
+            {
+                return;
+            }
+
+            var y = control.Height - 1;
+            if (y < 0)
+            {
+                return;
+            }
+
+            using (var pen = new Pen(Colors.Border))
+            {
+                e.Graphics.DrawLine(pen, 0, y, control.Width, y);
+            }
+        }
+
+        private static void BalanceMasterDetailSplitter(SplitContainer splitContainer, int targetDetailWidth)
+        {
+            if (splitContainer == null)
+            {
+                return;
+            }
+
+            void ApplyDistance()
+            {
+                if (splitContainer.IsDisposed)
+                {
+                    return;
+                }
+
+                var requiredWidth = splitContainer.Panel1MinSize + splitContainer.Panel2MinSize + splitContainer.SplitterWidth;
+                if (splitContainer.Width <= requiredWidth)
+                {
+                    return;
+                }
+
+                var maxDistance = splitContainer.Width - splitContainer.Panel2MinSize - splitContainer.SplitterWidth;
+                var minDistance = splitContainer.Panel1MinSize;
+                var preferredDistance = splitContainer.Width - targetDetailWidth - splitContainer.SplitterWidth;
+                splitContainer.SplitterDistance = Math.Max(minDistance, Math.Min(preferredDistance, maxDistance));
+            }
+
+            ApplyDistance();
+
+            if (ManagedMasterDetailSplitters.Contains(splitContainer))
+            {
+                return;
+            }
+
+            splitContainer.Resize += (_, __) => ApplyDistance();
+            splitContainer.Disposed += (_, __) => ManagedMasterDetailSplitters.Remove(splitContainer);
+            ManagedMasterDetailSplitters.Add(splitContainer);
+        }
+
+        private static Image GetBrandingLogo()
+        {
+            if (BrandingLogoLoadAttempted)
+            {
+                return BrandingLogoCache;
+            }
+
+            BrandingLogoLoadAttempted = true;
+            foreach (var path in GetBrandingAssetCandidatePaths("branding-logo.png"))
+            {
+                try
+                {
+                    if (!File.Exists(path))
+                    {
+                        continue;
+                    }
+
+                    using (var stream = File.OpenRead(path))
+                    using (var image = Image.FromStream(stream))
+                    {
+                        BrandingLogoCache = new Bitmap(image);
+                    }
+
+                    break;
+                }
+                catch
+                {
+                    // Best effort lookup; continue with the next candidate.
+                }
+            }
+
+            return BrandingLogoCache;
+        }
+
+        private static Icon GetBrandingIcon()
+        {
+            if (BrandingIconLoadAttempted)
+            {
+                return BrandingIconCache;
+            }
+
+            BrandingIconLoadAttempted = true;
+            foreach (var path in GetBrandingAssetCandidatePaths("branding-logo.ico"))
+            {
+                try
+                {
+                    if (!File.Exists(path))
+                    {
+                        continue;
+                    }
+
+                    using (var stream = File.OpenRead(path))
+                    using (var icon = new Icon(stream))
+                    {
+                        BrandingIconCache = (Icon)icon.Clone();
+                    }
+
+                    break;
+                }
+                catch
+                {
+                    // Best effort lookup; continue with the next candidate.
+                }
+            }
+
+            return BrandingIconCache;
+        }
+
+        private static IEnumerable<string> GetBrandingAssetCandidatePaths(string fileName)
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            yield return Path.Combine(baseDir, "Assets", fileName);
+            yield return Path.Combine(baseDir, fileName);
+            yield return Path.GetFullPath(Path.Combine(baseDir, "..", "Assets", fileName));
+            yield return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "Assets", fileName));
+            yield return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "Assets", fileName));
+            yield return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "Assets", fileName));
         }
 
         private static void DrawTabItem(object sender, DrawItemEventArgs e)
@@ -678,6 +955,12 @@ namespace HospitalManagementSystem.Helpers
                     break;
                 case TableLayoutPanel tableLayoutPanel:
                     StyleTableLayoutPanel(tableLayoutPanel);
+                    break;
+                case GroupBox groupBox:
+                    StyleGroupBox(groupBox);
+                    break;
+                case SplitContainer splitContainer:
+                    StyleSplitContainer(splitContainer);
                     break;
                 case Panel panel:
                     if (ShouldStyleAsCard(panel))
@@ -918,24 +1201,23 @@ namespace HospitalManagementSystem.Helpers
                 || name.Contains("menu")
                 || name.Contains("content")
                 || name.Contains("left")
-                || name.Contains("top"))
+                || name.Contains("top")
+                || name.Contains("search")
+                || name.Contains("buttons")
+                || name.Contains("section")
+                || name.Contains("footer"))
             {
                 return false;
             }
 
             return name.Contains("card")
-                   || name.Contains("search")
-                   || name.Contains("buttons")
-                   || name.Contains("patients")
-                   || name.Contains("doctors")
+                   || name.Contains("chart")
+                   || name.Contains("overview")
+                   || name.Contains("analytics")
+                   || name.Contains("stats")
                    || name.Contains("revenue")
-                   || name.Contains("container")
                    || name.Contains("summary")
-                   || name.Contains("actions")
-                   || (panel.BackColor == Color.White
-                       && (panel.Dock == DockStyle.Top || panel.Dock == DockStyle.None)
-                       && panel.Height >= 42
-                       && panel.Height <= 220);
+                   || name.Contains("gender");
         }
 
         private sealed class ThemeToolStripColorTable : ProfessionalColorTable
