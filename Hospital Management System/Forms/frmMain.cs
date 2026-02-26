@@ -124,10 +124,11 @@ namespace HospitalManagementSystem.Forms
         private void ApplyTheme()
         {
             ThemeManager.ApplyFormTheme(this, styleChildren: false);
+            menuStrip1.Visible = menuStrip1.Items.Count > 0;
             pnlLeft.BackColor = ThemeManager.Colors.Sidebar;
             pnlTop.BackColor = ThemeManager.Colors.Surface;
             pnlContent.BackColor = ThemeManager.Colors.Background;
-            statusStrip1.BackColor = ThemeManager.Colors.Surface;
+            ThemeManager.StyleStatusStrip(statusStrip1);
             lblStatus.ForeColor = ThemeManager.Colors.TextSecondary;
         }
     }

@@ -74,8 +74,8 @@ namespace HospitalManagementSystem.Forms
         private void ApplyTheme()
         {
             ThemeManager.ApplyFormTheme(this, styleChildren: false);
-            ThemeManager.StyleCardPanel(pnlContainer, 16);
             ThemeManager.ApplyControlTheme(pnlContainer);
+            ThemeManager.StyleCardPanel(pnlContainer, 16);
         }
 
         private static async System.Threading.Tasks.Task TestDatabaseConnectionAsync()

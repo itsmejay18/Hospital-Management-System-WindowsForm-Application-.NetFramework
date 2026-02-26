@@ -22,6 +22,7 @@ namespace HospitalManagementSystem.Helpers
             public static readonly Color Primary = ColorTranslator.FromHtml("#4F46E5");
             public static readonly Color PrimaryHover = ColorTranslator.FromHtml("#4338CA");
             public static readonly Color PrimaryPressed = ColorTranslator.FromHtml("#3730A3");
+            public static readonly Color PrimarySoft = ColorTranslator.FromHtml("#E0E7FF");
             public static readonly Color Background = ColorTranslator.FromHtml("#F3F4F6");
             public static readonly Color Surface = Color.White;
             public static readonly Color SurfaceMuted = ColorTranslator.FromHtml("#EEF2FF");
@@ -59,7 +60,9 @@ namespace HospitalManagementSystem.Helpers
             }
 
             form.BackColor = Colors.Background;
+            form.ForeColor = Colors.TextPrimary;
             form.Font = Fonts.Regular;
+            StyleStripControls(form);
 
             if (styleChildren)
             {
@@ -77,44 +80,11 @@ namespace HospitalManagementSystem.Helpers
                 return;
             }
 
+            ApplySingleControlTheme(root);
+
             foreach (Control child in root.Controls)
             {
-                switch (child)
-                {
-                    case DataGridView grid:
-                        StyleDataGridView(grid);
-                        break;
-                    case Button button:
-                        StyleButton(button, ResolveButtonKind(button));
-                        break;
-                    case TextBox textBox:
-                        StyleTextBox(textBox);
-                        break;
-                    case ComboBox comboBox:
-                        StyleComboBox(comboBox);
-                        break;
-                    case DateTimePicker dateTimePicker:
-                        StyleDateTimePicker(dateTimePicker);
-                        break;
-                    case NumericUpDown numericUpDown:
-                        StyleNumericUpDown(numericUpDown);
-                        break;
-                    case Panel panel:
-                        if (ShouldStyleAsCard(panel))
-                        {
-                            StyleCardPanel(panel);
-                        }
-
-                        break;
-                    case Label label:
-                        StyleLabel(label);
-                        break;
-                }
-
-                if (child.HasChildren)
-                {
-                    ApplyControlTheme(child);
-                }
+                ApplyControlTheme(child);
             }
         }
 
@@ -207,7 +177,7 @@ namespace HospitalManagementSystem.Helpers
             button.Margin = new Padding(3, 5, 3, 0);
             button.Cursor = Cursors.Hand;
             button.Width = 194;
-            button.Height = 38;
+            button.Height = 40;
 
             if (isDanger)
             {
@@ -251,6 +221,8 @@ namespace HospitalManagementSystem.Helpers
             button.FlatAppearance.BorderSize = 1;
             button.Font = Fonts.Medium;
             button.Cursor = Cursors.Hand;
+            button.Height = Math.Max(button.Height, 32);
+            button.Padding = new Padding(Math.Max(button.Padding.Left, 10), 0, Math.Max(button.Padding.Right, 10), 0);
 
             switch (kind)
             {
@@ -274,7 +246,7 @@ namespace HospitalManagementSystem.Helpers
                     button.ForeColor = Colors.TextPrimary;
                     button.FlatAppearance.BorderColor = Colors.Border;
                     button.FlatAppearance.MouseOverBackColor = Colors.SurfaceMuted;
-                    button.FlatAppearance.MouseDownBackColor = ColorTranslator.FromHtml("#E0E7FF");
+                    button.FlatAppearance.MouseDownBackColor = Colors.PrimarySoft;
                     break;
             }
 
@@ -295,6 +267,9 @@ namespace HospitalManagementSystem.Helpers
             grid.BackgroundColor = Colors.Surface;
             grid.BorderStyle = BorderStyle.None;
             grid.GridColor = Colors.Border;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            grid.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             grid.RowHeadersVisible = false;
             grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             grid.MultiSelect = false;
@@ -311,11 +286,11 @@ namespace HospitalManagementSystem.Helpers
 
             grid.DefaultCellStyle.BackColor = Colors.Surface;
             grid.DefaultCellStyle.ForeColor = Colors.TextPrimary;
-            grid.DefaultCellStyle.SelectionBackColor = ColorTranslator.FromHtml("#E0E7FF");
+            grid.DefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
             grid.DefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
             grid.DefaultCellStyle.Font = Fonts.Regular;
             grid.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F9FAFB");
-            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = ColorTranslator.FromHtml("#E0E7FF");
+            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
             grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
         }
 
@@ -361,6 +336,8 @@ namespace HospitalManagementSystem.Helpers
                 return;
             }
 
+            picker.CalendarTitleBackColor = Colors.Primary;
+            picker.CalendarTitleForeColor = Color.White;
             picker.CalendarMonthBackground = Colors.Surface;
             picker.CalendarForeColor = Colors.TextPrimary;
             picker.Font = Fonts.Regular;
@@ -383,6 +360,168 @@ namespace HospitalManagementSystem.Helpers
         }
 
         /// <summary>
+        /// Styles checkbox controls.
+        /// </summary>
+        public static void StyleCheckBox(CheckBox checkBox)
+        {
+            if (checkBox == null)
+            {
+                return;
+            }
+
+            checkBox.Font = Fonts.Regular;
+            checkBox.ForeColor = Colors.TextPrimary;
+            if (ShouldUseTransparentBackground(checkBox.Parent))
+            {
+                checkBox.BackColor = Color.Transparent;
+            }
+        }
+
+        /// <summary>
+        /// Styles link label controls.
+        /// </summary>
+        public static void StyleLinkLabel(LinkLabel linkLabel)
+        {
+            if (linkLabel == null)
+            {
+                return;
+            }
+
+            linkLabel.Font = Fonts.Regular;
+            linkLabel.ActiveLinkColor = Colors.PrimaryPressed;
+            linkLabel.LinkColor = Colors.Primary;
+            linkLabel.VisitedLinkColor = Colors.PrimaryHover;
+            linkLabel.LinkBehavior = LinkBehavior.HoverUnderline;
+        }
+
+        /// <summary>
+        /// Styles menu strip controls.
+        /// </summary>
+        public static void StyleMenuStrip(MenuStrip menuStrip)
+        {
+            if (menuStrip == null)
+            {
+                return;
+            }
+
+            menuStrip.RenderMode = ToolStripRenderMode.Professional;
+            menuStrip.Renderer = new ToolStripProfessionalRenderer(new ThemeToolStripColorTable());
+            menuStrip.BackColor = Colors.Surface;
+            menuStrip.ForeColor = Colors.TextPrimary;
+            menuStrip.Font = Fonts.Regular;
+            menuStrip.GripStyle = ToolStripGripStyle.Hidden;
+            StyleToolStripItems(menuStrip.Items);
+        }
+
+        /// <summary>
+        /// Styles status strip controls.
+        /// </summary>
+        public static void StyleStatusStrip(StatusStrip statusStrip)
+        {
+            if (statusStrip == null)
+            {
+                return;
+            }
+
+            statusStrip.RenderMode = ToolStripRenderMode.Professional;
+            statusStrip.Renderer = new ToolStripProfessionalRenderer(new ThemeToolStripColorTable());
+            statusStrip.BackColor = Colors.Surface;
+            statusStrip.ForeColor = Colors.TextSecondary;
+            statusStrip.Font = Fonts.Regular;
+            statusStrip.SizingGrip = false;
+            StyleToolStripItems(statusStrip.Items);
+        }
+
+        /// <summary>
+        /// Styles generic tool strip controls.
+        /// </summary>
+        public static void StyleToolStrip(ToolStrip toolStrip)
+        {
+            if (toolStrip == null)
+            {
+                return;
+            }
+
+            toolStrip.RenderMode = ToolStripRenderMode.Professional;
+            toolStrip.Renderer = new ToolStripProfessionalRenderer(new ThemeToolStripColorTable());
+            toolStrip.BackColor = Colors.Surface;
+            toolStrip.ForeColor = Colors.TextPrimary;
+            toolStrip.Font = Fonts.Regular;
+            toolStrip.GripStyle = ToolStripGripStyle.Hidden;
+            StyleToolStripItems(toolStrip.Items);
+        }
+
+        /// <summary>
+        /// Styles tab container controls.
+        /// </summary>
+        public static void StyleTabControl(TabControl tabControl)
+        {
+            if (tabControl == null)
+            {
+                return;
+            }
+
+            tabControl.BackColor = Colors.Background;
+            tabControl.Font = Fonts.Medium;
+            tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabControl.Padding = new Point(16, 6);
+            tabControl.ItemSize = new Size(130, Math.Max(tabControl.ItemSize.Height, 34));
+            tabControl.DrawItem -= DrawTabItem;
+            tabControl.DrawItem += DrawTabItem;
+        }
+
+        /// <summary>
+        /// Styles tab page controls.
+        /// </summary>
+        public static void StyleTabPage(TabPage tabPage)
+        {
+            if (tabPage == null)
+            {
+                return;
+            }
+
+            tabPage.BackColor = Colors.Background;
+            tabPage.ForeColor = Colors.TextPrimary;
+            tabPage.Font = Fonts.Regular;
+        }
+
+        /// <summary>
+        /// Styles flow layout controls.
+        /// </summary>
+        public static void StyleFlowLayoutPanel(FlowLayoutPanel panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            if (panel.BackColor == Color.Empty
+                || panel.BackColor == SystemColors.Control
+                || panel.BackColor == Color.WhiteSmoke)
+            {
+                panel.BackColor = Colors.Background;
+            }
+        }
+
+        /// <summary>
+        /// Styles table layout controls.
+        /// </summary>
+        public static void StyleTableLayoutPanel(TableLayoutPanel panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            if (panel.BackColor == Color.Empty
+                || panel.BackColor == SystemColors.Control
+                || panel.BackColor == Color.WhiteSmoke)
+            {
+                panel.BackColor = Colors.Background;
+            }
+        }
+
+        /// <summary>
         /// Styles labels.
         /// </summary>
         public static void StyleLabel(Label label)
@@ -392,14 +531,47 @@ namespace HospitalManagementSystem.Helpers
                 return;
             }
 
-            label.ForeColor = label.ForeColor == Color.White ? Color.White : Colors.TextPrimary;
-            if (label.Font.Bold)
+            var fontSize = label.Font?.Size ?? Fonts.Regular.Size;
+            var isHeading = IsHeadingLabel(label);
+            var isDarkParent = IsDarkColor(label.Parent?.BackColor ?? Color.Empty);
+
+            label.ForeColor = label.ForeColor == Color.White || isDarkParent
+                ? Color.White
+                : IsSecondaryLabel(label)
+                    ? Colors.TextSecondary
+                    : Colors.TextPrimary;
+
+            if (isHeading)
             {
-                label.Font = new Font("Segoe UI Semibold", label.Font.Size, FontStyle.Regular);
+                label.Font = new Font("Segoe UI Semibold", Math.Max(fontSize, 12F), FontStyle.Regular);
+                return;
+            }
+
+            if (label.Font != null && label.Font.Bold)
+            {
+                label.Font = new Font("Segoe UI Semibold", fontSize, FontStyle.Regular);
             }
             else
             {
-                label.Font = Fonts.Regular;
+                label.Font = new Font("Segoe UI", fontSize, FontStyle.Regular);
+            }
+        }
+
+        /// <summary>
+        /// Applies a neutral panel style for non-card containers.
+        /// </summary>
+        public static void StylePanel(Panel panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            if (panel.BackColor == Color.Empty
+                || panel.BackColor == SystemColors.Control
+                || panel.BackColor == Color.WhiteSmoke)
+            {
+                panel.BackColor = Colors.Background;
             }
         }
 
@@ -417,6 +589,240 @@ namespace HospitalManagementSystem.Helpers
             {
                 e.Graphics.DrawPath(pen, path);
             }
+        }
+
+        private static void DrawTabItem(object sender, DrawItemEventArgs e)
+        {
+            if (!(sender is TabControl tabControl))
+            {
+                return;
+            }
+
+            if (e.Index < 0 || e.Index >= tabControl.TabPages.Count)
+            {
+                return;
+            }
+
+            var tabPage = tabControl.TabPages[e.Index];
+            var isSelected = tabControl.SelectedIndex == e.Index;
+            var rect = new Rectangle(e.Bounds.X + 2, e.Bounds.Y + 3, e.Bounds.Width - 4, e.Bounds.Height - 4);
+
+            if (rect.Width <= 0 || rect.Height <= 0)
+            {
+                return;
+            }
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var path = CreateRoundedPath(rect, 6))
+            using (var brush = new SolidBrush(isSelected ? Colors.Surface : Color.White))
+            using (var pen = new Pen(isSelected ? Colors.Primary : Colors.Border))
+            {
+                e.Graphics.FillPath(brush, path);
+                e.Graphics.DrawPath(pen, path);
+            }
+
+            TextRenderer.DrawText(
+                e.Graphics,
+                tabPage.Text,
+                Fonts.Medium,
+                rect,
+                isSelected ? Colors.Primary : Colors.TextSecondary,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        }
+
+        private static void ApplySingleControlTheme(Control control)
+        {
+            switch (control)
+            {
+                case MenuStrip menuStrip:
+                    StyleMenuStrip(menuStrip);
+                    break;
+                case StatusStrip statusStrip:
+                    StyleStatusStrip(statusStrip);
+                    break;
+                case ToolStrip toolStrip:
+                    StyleToolStrip(toolStrip);
+                    break;
+                case DataGridView grid:
+                    StyleDataGridView(grid);
+                    break;
+                case Button button:
+                    StyleButton(button, ResolveButtonKind(button));
+                    break;
+                case TextBox textBox:
+                    StyleTextBox(textBox);
+                    break;
+                case ComboBox comboBox:
+                    StyleComboBox(comboBox);
+                    break;
+                case DateTimePicker dateTimePicker:
+                    StyleDateTimePicker(dateTimePicker);
+                    break;
+                case NumericUpDown numericUpDown:
+                    StyleNumericUpDown(numericUpDown);
+                    break;
+                case CheckBox checkBox:
+                    StyleCheckBox(checkBox);
+                    break;
+                case LinkLabel linkLabel:
+                    StyleLinkLabel(linkLabel);
+                    break;
+                case TabControl tabControl:
+                    StyleTabControl(tabControl);
+                    break;
+                case TabPage tabPage:
+                    StyleTabPage(tabPage);
+                    break;
+                case FlowLayoutPanel flowLayoutPanel:
+                    StyleFlowLayoutPanel(flowLayoutPanel);
+                    break;
+                case TableLayoutPanel tableLayoutPanel:
+                    StyleTableLayoutPanel(tableLayoutPanel);
+                    break;
+                case Panel panel:
+                    if (ShouldStyleAsCard(panel))
+                    {
+                        StyleCardPanel(panel);
+                    }
+                    else
+                    {
+                        StylePanel(panel);
+                    }
+
+                    break;
+                case Label label:
+                    StyleLabel(label);
+                    break;
+            }
+
+            if (control is UserControl userControl)
+            {
+                StyleUserControl(userControl);
+            }
+        }
+
+        private static void StyleUserControl(UserControl userControl)
+        {
+            if (userControl == null)
+            {
+                return;
+            }
+
+            if (userControl.BackColor == Color.Empty
+                || userControl.BackColor == SystemColors.Control
+                || userControl.BackColor == Color.WhiteSmoke)
+            {
+                userControl.BackColor = Colors.Background;
+            }
+        }
+
+        private static void StyleStripControls(Form form)
+        {
+            foreach (Control control in form.Controls)
+            {
+                if (control is MenuStrip menuStrip)
+                {
+                    StyleMenuStrip(menuStrip);
+                }
+                else if (control is StatusStrip statusStrip)
+                {
+                    StyleStatusStrip(statusStrip);
+                }
+                else if (control is ToolStrip toolStrip)
+                {
+                    StyleToolStrip(toolStrip);
+                }
+            }
+        }
+
+        private static void StyleToolStripItems(ToolStripItemCollection items)
+        {
+            if (items == null)
+            {
+                return;
+            }
+
+            foreach (ToolStripItem item in items)
+            {
+                if (item == null)
+                {
+                    continue;
+                }
+
+                item.Font = Fonts.Regular;
+                item.ForeColor = Colors.TextPrimary;
+
+                if (item is ToolStripStatusLabel statusLabel)
+                {
+                    statusLabel.ForeColor = Colors.TextSecondary;
+                    statusLabel.BorderSides = ToolStripStatusLabelBorderSides.None;
+                }
+                else if (item is ToolStripMenuItem menuItem)
+                {
+                    menuItem.BackColor = Colors.Surface;
+                    menuItem.ForeColor = Colors.TextPrimary;
+
+                    if (menuItem.DropDown != null)
+                    {
+                        menuItem.DropDown.BackColor = Colors.Surface;
+                        menuItem.DropDown.ForeColor = Colors.TextPrimary;
+                        menuItem.DropDown.Font = Fonts.Regular;
+                    }
+
+                    StyleToolStripItems(menuItem.DropDownItems);
+                }
+            }
+        }
+
+        private static bool ShouldUseTransparentBackground(Control parent)
+        {
+            if (parent == null)
+            {
+                return false;
+            }
+
+            return parent.BackColor == Colors.Surface
+                   || parent.BackColor == Colors.Background
+                   || parent.BackColor == Color.White;
+        }
+
+        private static bool IsHeadingLabel(Label label)
+        {
+            if (label == null)
+            {
+                return false;
+            }
+
+            var name = label.Name?.ToLowerInvariant() ?? string.Empty;
+            return name.Contains("title")
+                   || name.Contains("header")
+                   || name.Contains("welcome")
+                   || name.Contains("role")
+                   || name.Contains("section");
+        }
+
+        private static bool IsSecondaryLabel(Label label)
+        {
+            if (label == null)
+            {
+                return false;
+            }
+
+            var name = label.Name?.ToLowerInvariant() ?? string.Empty;
+            return name.Contains("status")
+                   || name.Contains("hint")
+                   || name.Contains("user")
+                   || name.Contains("subtitle");
+        }
+
+        private static bool IsDarkColor(Color color)
+        {
+            if (color == Color.Empty)
+            {
+                return false;
+            }
+
+            return color.GetBrightness() < 0.45;
         }
 
         private static void ApplyRoundedCorners(Control control, int radius)
@@ -506,12 +912,57 @@ namespace HospitalManagementSystem.Helpers
             }
 
             var name = panel.Name?.ToLowerInvariant() ?? string.Empty;
+            if (name.Contains("header")
+                || name.Contains("sidebar")
+                || name.Contains("navigation")
+                || name.Contains("menu")
+                || name.Contains("content")
+                || name.Contains("left")
+                || name.Contains("top"))
+            {
+                return false;
+            }
+
             return name.Contains("card")
                    || name.Contains("search")
                    || name.Contains("buttons")
                    || name.Contains("patients")
                    || name.Contains("doctors")
-                   || name.Contains("revenue");
+                   || name.Contains("revenue")
+                   || name.Contains("container")
+                   || name.Contains("summary")
+                   || name.Contains("actions")
+                   || (panel.BackColor == Color.White
+                       && (panel.Dock == DockStyle.Top || panel.Dock == DockStyle.None)
+                       && panel.Height >= 42
+                       && panel.Height <= 220);
+        }
+
+        private sealed class ThemeToolStripColorTable : ProfessionalColorTable
+        {
+            public override Color MenuItemSelected => Colors.SurfaceMuted;
+
+            public override Color MenuItemBorder => Colors.Primary;
+
+            public override Color MenuBorder => Colors.Border;
+
+            public override Color MenuItemPressedGradientBegin => Colors.Surface;
+
+            public override Color MenuItemPressedGradientMiddle => Colors.Surface;
+
+            public override Color MenuItemPressedGradientEnd => Colors.Surface;
+
+            public override Color ToolStripDropDownBackground => Colors.Surface;
+
+            public override Color ImageMarginGradientBegin => Colors.Surface;
+
+            public override Color ImageMarginGradientMiddle => Colors.Surface;
+
+            public override Color ImageMarginGradientEnd => Colors.Surface;
+
+            public override Color StatusStripGradientBegin => Colors.Surface;
+
+            public override Color StatusStripGradientEnd => Colors.Surface;
         }
     }
 
