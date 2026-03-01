@@ -14,7 +14,7 @@
     <Deterministic>true</Deterministic>
     <ApplicationIcon>Assets\branding-logo.ico</ApplicationIcon>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\Users\acer\Downloads\</PublishUrl>
+    <PublishUrl>C:\Users\acer\Documents\GitHub\Hospital-Management-System-WindowsForm-Application-.NetFramework\Installer\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
