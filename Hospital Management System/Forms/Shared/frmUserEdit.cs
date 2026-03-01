@@ -69,6 +69,13 @@ namespace HospitalManagementSystem.Forms.Shared
                 _user.RoleID = cboRole.SelectedValue is int roleId ? roleId : 1;
                 _user.IsActive = chkActive.Checked;
 
+                if (string.IsNullOrWhiteSpace(_user.Username))
+                {
+                    MessageBox.Show("Username is required.", "Validation",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 if (string.IsNullOrWhiteSpace(txtPassword.Text))
                 {
                     if (_user.UserID == 0)

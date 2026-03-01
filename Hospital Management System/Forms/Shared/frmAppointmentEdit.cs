@@ -69,6 +69,11 @@ namespace HospitalManagementSystem.Forms.Shared
             dtpTime.Value = DateTime.Today.Add(_appointment.AppointmentTime);
             cboType.Text = _appointment.AppointmentType;
             cboStatus.Text = _appointment.Status;
+
+            if (string.IsNullOrWhiteSpace(txtCode.Text))
+            {
+                txtCode.Text = $"APP-{DateTime.Now:yyyyMMddHHmmss}";
+            }
         }
 
         private async void btnSave_Click(object sender, EventArgs e)
@@ -92,6 +97,28 @@ namespace HospitalManagementSystem.Forms.Shared
                 if (string.IsNullOrWhiteSpace(_appointment.AppointmentCode))
                 {
                     _appointment.AppointmentCode = $"APP-{DateTime.Now:yyyyMMddHHmmss}";
+                }
+
+                if (_appointment.PatientID <= 0)
+                {
+                    MessageBox.Show("Please select a patient.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (_appointment.DoctorID <= 0)
+                {
+                    MessageBox.Show("Please select a doctor.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(_appointment.AppointmentType))
+                {
+                    _appointment.AppointmentType = "Consultation";
+                }
+
+                if (string.IsNullOrWhiteSpace(_appointment.Status))
+                {
+                    _appointment.Status = "Scheduled";
                 }
 
                 if (_appointment.AppointmentID == 0)

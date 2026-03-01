@@ -321,14 +321,26 @@ namespace HospitalManagementSystem.UserControls
             ApplyFilter(txtSearch.Text);
         }
 
-        private void btnAdd_Click(object sender, EventArgs e)
+        private async void btnAdd_Click(object sender, EventArgs e)
         {
-            using (var dialog = new frmDoctorEdit())
+            try
             {
-                if (dialog.ShowDialog(this) == DialogResult.OK)
+                using (var dialog = new frmDoctorEdit())
                 {
-                    _ = ReloadAsync();
+                    IWin32Window owner = FindForm();
+                    if (owner == null)
+                    {
+                        owner = this;
+                    }
+                    if (dialog.ShowDialog(owner) == DialogResult.OK)
+                    {
+                        await ReloadAsync().ConfigureAwait(true);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to add doctor: {ex.Message}", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -470,6 +482,7 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnDelete, ThemeButtonKind.Danger);
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
+            ThemeManager.StyleSearchTextBox(txtSearch, "Search doctor code / name / specialization");
         }
     }
 }

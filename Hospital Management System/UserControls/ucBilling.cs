@@ -191,7 +191,7 @@ namespace HospitalManagementSystem.UserControls
             ApplyFilter(txtSearch.Text);
         }
 
-        private void btnProcessPayment_Click(object sender, EventArgs e)
+        private async void btnProcessPayment_Click(object sender, EventArgs e)
         {
             var invoice = GetSelectedInvoice();
             if (invoice == null)
@@ -202,9 +202,14 @@ namespace HospitalManagementSystem.UserControls
 
             using (var dlg = new Forms.Shared.frmInvoicePayment(invoice.InvoiceID))
             {
-                if (dlg.ShowDialog(this) == DialogResult.OK)
+                IWin32Window owner = FindForm();
+                if (owner == null)
                 {
-                    _ = ReloadAsync(invoice.InvoiceID);
+                    owner = this;
+                }
+                if (dlg.ShowDialog(owner) == DialogResult.OK)
+                {
+                    await ReloadAsync(invoice.InvoiceID).ConfigureAwait(true);
                 }
             }
         }
@@ -222,6 +227,7 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
             ThemeManager.StyleButton(btnProcessPayment, ThemeButtonKind.Primary);
+            ThemeManager.StyleSearchTextBox(txtSearch, "Search invoice # / patient / status");
 
             txtInvoiceNo.ReadOnly = true;
             txtPatient.ReadOnly = true;

@@ -1,4 +1,8 @@
-﻿using System;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using HospitalManagementSystem.Forms;
 
@@ -10,11 +14,59 @@ namespace HospitalManagementSystem
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += Application_ThreadException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmLogin());
+        }
+
+        private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            HandleUnhandledException("UI Thread", e.Exception);
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            HandleUnhandledException("AppDomain", e.ExceptionObject as Exception);
+        }
+
+        private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            HandleUnhandledException("Background Task", e.Exception);
+            e.SetObserved();
+        }
+
+        private static void HandleUnhandledException(string source, Exception exception)
+        {
+            var ex = exception ?? new Exception("Unknown application error.");
+            try
+            {
+                var logDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "HospitalManagementSystem");
+                Directory.CreateDirectory(logDirectory);
+
+                var logFilePath = Path.Combine(logDirectory, "error.log");
+                var entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}: {ex}\r\n";
+                File.AppendAllText(logFilePath, entry);
+            }
+            catch
+            {
+                // Ignore logging failures.
+            }
+
+            Trace.TraceError("{0}: {1}", source, ex);
+            MessageBox.Show(
+                $"An unexpected error occurred ({source}).\r\n{ex.Message}\r\n\r\nThe error has been logged.",
+                "Application Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using HospitalManagementSystem.DAL;
+using System.Collections.Generic;
 
 namespace HospitalManagementSystem.BLL.Services
 {
@@ -194,6 +195,50 @@ namespace HospitalManagementSystem.BLL.Services
                           FROM Patients
                           ORDER BY RegistrationDate DESC");
             }
+        }
+
+        /// <summary>
+        /// Gets recent appointment updates for dashboard presentation.
+        /// </summary>
+        public Task<DataTable> GetRecentAppointmentUpdatesAsync(int maxRows = 8)
+        {
+            var safeRows = maxRows <= 0 ? 8 : maxRows;
+            return DatabaseConnection.Instance.ExecuteQueryAsync(
+                @"SELECT
+                      'Appointment' AS `Type`,
+                      a.AppointmentCode AS `ReferenceNo`,
+                      COALESCE(a.Status, 'Pending') AS `Status`,
+                      DATE_FORMAT(CONCAT(a.AppointmentDate, ' ', COALESCE(a.AppointmentTime, '00:00:00')), '%Y-%m-%d %H:%i') AS `UpdatedAt`
+                  FROM Appointments a
+                  ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC
+                  LIMIT @take;",
+                new Dictionary<string, object> { { "@take", safeRows } });
+        }
+
+        /// <summary>
+        /// Gets staff performance snapshot for dashboard presentation.
+        /// </summary>
+        public Task<DataTable> GetStaffPerformanceSnapshotAsync(int maxRows = 8)
+        {
+            var safeRows = maxRows <= 0 ? 8 : maxRows;
+            return DatabaseConnection.Instance.ExecuteQueryAsync(
+                @"SELECT
+                      TRIM(CONCAT(COALESCE(ud.FirstName, ''), ' ', COALESCE(ud.LastName, ''))) AS `Staff`,
+                      COALESCE(ur.RoleName, 'Staff') AS `Role`,
+                      COUNT(a.AppointmentID) AS `Consultations`,
+                      SUM(CASE WHEN COALESCE(a.Status, '') = 'Completed' THEN 1 ELSE 0 END) AS `Completed`,
+                      SUM(CASE WHEN COALESCE(a.Status, '') = 'Cancelled' THEN 1 ELSE 0 END) AS `Overdue`,
+                      ROUND(COALESCE(SUM(CASE WHEN COALESCE(a.Status, '') = 'Completed' THEN d.ConsultationFee ELSE 0 END), 0), 2) AS `Revenue`,
+                      SUM(CASE WHEN COALESCE(a.Status, '') IN ('Pending', 'Scheduled', 'Rescheduled') THEN 1 ELSE 0 END) AS `Pending`
+                  FROM Doctors d
+                  LEFT JOIN Users u ON u.UserID = d.UserID
+                  LEFT JOIN UserDetails ud ON ud.UserID = u.UserID
+                  LEFT JOIN UserRoles ur ON ur.RoleID = u.RoleID
+                  LEFT JOIN Appointments a ON a.DoctorID = d.DoctorID
+                  GROUP BY d.DoctorID, ud.FirstName, ud.LastName, ur.RoleName
+                  ORDER BY `Completed` DESC, `Revenue` DESC, `Staff`
+                  LIMIT @take;",
+                new Dictionary<string, object> { { "@take", safeRows } });
         }
 
         private static string NormalizeKey(string reportKey)

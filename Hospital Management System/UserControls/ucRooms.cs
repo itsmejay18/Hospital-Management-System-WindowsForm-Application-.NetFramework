@@ -55,7 +55,7 @@ namespace HospitalManagementSystem.UserControls
 
         private void InitializeLayout()
         {
-            BackColor = Color.FromArgb(245, 248, 252);
+            BackColor = ThemeManager.Colors.Background;
 
             var tabs = new TabControl
             {
@@ -63,7 +63,7 @@ namespace HospitalManagementSystem.UserControls
                 Appearance = TabAppearance.Normal
             };
 
-            var tabRooms = new TabPage("Rooms (CRUD)")
+            var tabRooms = new TabPage("Rooms")
             {
                 BackColor = BackColor
             };
@@ -71,7 +71,7 @@ namespace HospitalManagementSystem.UserControls
             tabRooms.Controls.Add(BuildRoomActionPanel());
             tabRooms.Controls.Add(BuildRoomSearchPanel());
 
-            var tabTransactions = new TabPage("Patient Room Transactions")
+            var tabTransactions = new TabPage("Admissions")
             {
                 BackColor = BackColor
             };
@@ -92,7 +92,7 @@ namespace HospitalManagementSystem.UserControls
                 Dock = DockStyle.Top,
                 Height = 54,
                 Padding = new Padding(12, 12, 12, 8),
-                BackColor = Color.White
+                BackColor = ThemeManager.Colors.Surface
             };
 
             var lbl = new Label
@@ -107,16 +107,30 @@ namespace HospitalManagementSystem.UserControls
             {
                 Left = 108,
                 Top = 14,
-                Width = 280
+                Width = 280,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
             btnRoomSearch = CreatePrimaryButton("Search", 396, 12, 90);
             btnRoomRefresh = CreateOutlineButton("Refresh", 492, 12, 90);
+            btnRoomSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnRoomRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 
             panel.Controls.Add(lbl);
             panel.Controls.Add(txtRoomSearch);
             panel.Controls.Add(btnRoomSearch);
             panel.Controls.Add(btnRoomRefresh);
+
+            void LayoutSearchBar()
+            {
+                var right = panel.ClientSize.Width - 12;
+                btnRoomRefresh.Left = Math.Max(400, right - btnRoomRefresh.Width);
+                btnRoomSearch.Left = btnRoomRefresh.Left - btnRoomSearch.Width - 8;
+                txtRoomSearch.Width = Math.Max(180, btnRoomSearch.Left - txtRoomSearch.Left - 8);
+            }
+
+            panel.Resize += (_, __) => LayoutSearchBar();
+            panel.HandleCreated += (_, __) => LayoutSearchBar();
             return panel;
         }
 
@@ -127,7 +141,7 @@ namespace HospitalManagementSystem.UserControls
                 Dock = DockStyle.Top,
                 Height = 50,
                 Padding = new Padding(12, 8, 12, 8),
-                BackColor = Color.White
+                BackColor = ThemeManager.Colors.Surface
             };
 
             btnRoomAdd = CreatePrimaryButton("Add Room", 12, 10, 110);
@@ -149,7 +163,7 @@ namespace HospitalManagementSystem.UserControls
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 AutoGenerateColumns = false,
-                BackgroundColor = Color.White,
+                BackgroundColor = ThemeManager.Colors.Surface,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
                 RowHeadersVisible = false
@@ -216,7 +230,7 @@ namespace HospitalManagementSystem.UserControls
                 Dock = DockStyle.Top,
                 Height = 190,
                 Padding = new Padding(12, 8, 12, 8),
-                BackColor = Color.White
+                BackColor = ThemeManager.Colors.Surface
             };
 
             var lblPatient = CreatePanelLabel("Patient", 14, 14);
@@ -298,7 +312,7 @@ namespace HospitalManagementSystem.UserControls
                 Dock = DockStyle.Top,
                 Height = 54,
                 Padding = new Padding(12, 10, 12, 8),
-                BackColor = Color.White
+                BackColor = ThemeManager.Colors.Surface
             };
 
             var lblSearch = new Label
@@ -312,27 +326,33 @@ namespace HospitalManagementSystem.UserControls
             {
                 Left = 66,
                 Top = 14,
-                Width = 210
+                Width = 210,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left
             };
 
             btnAdmissionSearch = CreatePrimaryButton("Search", 282, 12, 85);
             btnAdmissionRefresh = CreateOutlineButton("Refresh", 373, 12, 85);
+            btnAdmissionSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            btnAdmissionRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
             var lblDischarge = new Label
             {
                 Text = "Discharge Summary:",
                 Left = 478,
                 Top = 18,
-                AutoSize = true
+                AutoSize = true,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
             txtDischargeSummary = new TextBox
             {
                 Left = 598,
                 Top = 14,
-                Width = 210
+                Width = 210,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 
             btnDischarge = CreateDangerButton("Discharge", 816, 12, 110);
+            btnDischarge.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 
             panel.Controls.Add(lblSearch);
             panel.Controls.Add(txtAdmissionSearch);
@@ -341,6 +361,17 @@ namespace HospitalManagementSystem.UserControls
             panel.Controls.Add(lblDischarge);
             panel.Controls.Add(txtDischargeSummary);
             panel.Controls.Add(btnDischarge);
+
+            void LayoutAdmissionSearchBar()
+            {
+                var right = panel.ClientSize.Width - 12;
+                btnDischarge.Left = Math.Max(560, right - btnDischarge.Width);
+                txtDischargeSummary.Left = btnDischarge.Left - txtDischargeSummary.Width - 8;
+                lblDischarge.Left = txtDischargeSummary.Left - lblDischarge.PreferredWidth - 8;
+            }
+
+            panel.Resize += (_, __) => LayoutAdmissionSearchBar();
+            panel.HandleCreated += (_, __) => LayoutAdmissionSearchBar();
             return panel;
         }
 
@@ -353,7 +384,7 @@ namespace HospitalManagementSystem.UserControls
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 AutoGenerateColumns = false,
-                BackgroundColor = Color.White,
+                BackgroundColor = ThemeManager.Colors.Surface,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false,
                 RowHeadersVisible = false
@@ -422,7 +453,7 @@ namespace HospitalManagementSystem.UserControls
                 Left = left,
                 Top = top,
                 AutoSize = true,
-                ForeColor = Color.FromArgb(43, 57, 72)
+                ForeColor = ThemeManager.Colors.TextPrimary
             };
         }
 
@@ -452,7 +483,7 @@ namespace HospitalManagementSystem.UserControls
                 Top = top,
                 Width = width,
                 Height = 30,
-                BackColor = Color.White,
+                BackColor = ThemeManager.Colors.Surface,
                 ForeColor = ThemeManager.Colors.TextPrimary,
                 FlatStyle = FlatStyle.Flat
             };
@@ -566,7 +597,12 @@ namespace HospitalManagementSystem.UserControls
         {
             using (var dialog = new frmRoomEdit())
             {
-                if (dialog.ShowDialog(this) != DialogResult.OK)
+                IWin32Window owner = FindForm();
+                if (owner == null)
+                {
+                    owner = this;
+                }
+                if (dialog.ShowDialog(owner) != DialogResult.OK)
                 {
                     return;
                 }
@@ -611,7 +647,12 @@ namespace HospitalManagementSystem.UserControls
 
             using (var dialog = new frmRoomEdit(copy))
             {
-                if (dialog.ShowDialog(this) != DialogResult.OK)
+                IWin32Window owner = FindForm();
+                if (owner == null)
+                {
+                    owner = this;
+                }
+                if (dialog.ShowDialog(owner) != DialogResult.OK)
                 {
                     return;
                 }
@@ -773,6 +814,11 @@ namespace HospitalManagementSystem.UserControls
         private void ApplyTheme()
         {
             ThemeManager.ApplyControlTheme(this);
+            ThemeManager.StyleDataGridView(dgvRooms);
+            ThemeManager.StyleDataGridView(dgvAdmissions);
+            ThemeManager.StyleSearchTextBox(txtRoomSearch, "Search room number / ward / type");
+            ThemeManager.StyleSearchTextBox(txtAdmissionSearch, "Search admission # / patient / room");
+            ThemeManager.StyleSearchTextBox(txtDischargeSummary, "Optional discharge note");
         }
     }
 }

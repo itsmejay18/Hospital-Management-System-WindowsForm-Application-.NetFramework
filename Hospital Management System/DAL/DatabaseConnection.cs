@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HospitalManagementSystem.Helpers;
 using MySql.Data.MySqlClient;
 
 namespace HospitalManagementSystem.DAL
@@ -16,6 +17,8 @@ namespace HospitalManagementSystem.DAL
     {
         private static readonly Lazy<DatabaseConnection> InstanceValue =
             new Lazy<DatabaseConnection>(() => new DatabaseConnection());
+        private static readonly object RuntimeConnectionSync = new object();
+        private static string _runtimeConnectionString;
 
         private DatabaseConnection()
         {
@@ -25,6 +28,33 @@ namespace HospitalManagementSystem.DAL
         /// Gets the singleton instance of <see cref="DatabaseConnection"/>.
         /// </summary>
         public static DatabaseConnection Instance => InstanceValue.Value;
+
+        /// <summary>
+        /// Overrides the connection string for the current runtime session.
+        /// </summary>
+        public static void SetRuntimeConnectionString(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException("Connection string is required.", nameof(connectionString));
+            }
+
+            lock (RuntimeConnectionSync)
+            {
+                _runtimeConnectionString = connectionString.Trim();
+            }
+        }
+
+        /// <summary>
+        /// Clears any runtime connection override and falls back to persisted defaults.
+        /// </summary>
+        public static void ClearRuntimeConnectionString()
+        {
+            lock (RuntimeConnectionSync)
+            {
+                _runtimeConnectionString = null;
+            }
+        }
 
         /// <summary>
         /// Opens and returns a new MySQL connection.
@@ -210,6 +240,27 @@ namespace HospitalManagementSystem.DAL
 
         private static string ResolveConnectionString()
         {
+            lock (RuntimeConnectionSync)
+            {
+                if (!string.IsNullOrWhiteSpace(_runtimeConnectionString))
+                {
+                    return _runtimeConnectionString;
+                }
+            }
+
+            try
+            {
+                var profile = AppSettingsStore.Load();
+                if (!string.IsNullOrWhiteSpace(profile?.BootstrapConnection))
+                {
+                    return profile.BootstrapConnection.Trim();
+                }
+            }
+            catch
+            {
+                // Ignore persisted settings read errors and fall back to App.config.
+            }
+
             var connectionString = ConfigurationManager.ConnectionStrings["HospitalDB"]?.ConnectionString;
             if (!string.IsNullOrWhiteSpace(connectionString))
             {

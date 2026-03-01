@@ -43,7 +43,30 @@ namespace HospitalManagementSystem.Forms.Shared
                 var users = await _userService.GetAllAsync().ConfigureAwait(true);
                 var roles = await _userService.GetRolesAsync().ConfigureAwait(true);
                 var doctorRoleId = roles.FirstOrDefault(r => string.Equals(r.RoleName, "Doctor", StringComparison.OrdinalIgnoreCase))?.RoleID;
-                _doctorUsers = users.Where(u => doctorRoleId.HasValue && u.RoleID == doctorRoleId.Value).ToList();
+                var doctors = await _service.GetAllAsync().ConfigureAwait(true);
+                var assignedDoctorUsers = doctors
+                    .Where(d => d.UserID > 0)
+                    .Select(d => d.UserID)
+                    .ToHashSet();
+
+                if (_doctor.UserID > 0)
+                {
+                    assignedDoctorUsers.Remove(_doctor.UserID);
+                }
+
+                _doctorUsers = users
+                    .Where(u => doctorRoleId.HasValue && u.RoleID == doctorRoleId.Value && !assignedDoctorUsers.Contains(u.UserID))
+                    .OrderBy(u => u.Username)
+                    .ToList();
+
+                if (_doctor.UserID > 0 && _doctorUsers.All(u => u.UserID != _doctor.UserID))
+                {
+                    var current = users.FirstOrDefault(u => u.UserID == _doctor.UserID);
+                    if (current != null)
+                    {
+                        _doctorUsers.Insert(0, current);
+                    }
+                }
 
                 cboUser.DataSource = _doctorUsers;
                 cboUser.DisplayMember = "Username";
@@ -59,6 +82,15 @@ namespace HospitalManagementSystem.Forms.Shared
                 {
                     cboSpecialization.SelectedValue = _doctor.SpecializationID.Value;
                 }
+
+                if (_doctor.DoctorID == 0 && _doctorUsers.Count == 0)
+                {
+                    MessageBox.Show(
+                        "No available user account with Doctor role. Create a Doctor user first in Users module.",
+                        "Doctor",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
@@ -72,6 +104,11 @@ namespace HospitalManagementSystem.Forms.Shared
             txtLicense.Text = _doctor.LicenseNumber;
             txtQualification.Text = _doctor.Qualification;
             numFee.Value = _doctor.ConsultationFee ?? 0m;
+
+            if (string.IsNullOrWhiteSpace(txtCode.Text))
+            {
+                txtCode.Text = $"D-{DateTime.Now:yyyyMMddHHmmss}";
+            }
         }
 
         private async void btnSave_Click(object sender, EventArgs e)
@@ -84,6 +121,19 @@ namespace HospitalManagementSystem.Forms.Shared
                 _doctor.LicenseNumber = txtLicense.Text.Trim();
                 _doctor.Qualification = txtQualification.Text.Trim();
                 _doctor.ConsultationFee = numFee.Value;
+                _doctor.JoiningDate = _doctor.JoiningDate ?? DateTime.Today;
+
+                if (string.IsNullOrWhiteSpace(_doctor.DoctorCode))
+                {
+                    MessageBox.Show("Doctor code is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (_doctor.UserID <= 0)
+                {
+                    MessageBox.Show("Please select a Doctor user account.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 if (_doctor.DoctorID == 0)
                 {

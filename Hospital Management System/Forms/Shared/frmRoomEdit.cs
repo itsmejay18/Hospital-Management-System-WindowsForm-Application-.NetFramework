@@ -50,7 +50,7 @@ namespace HospitalManagementSystem.Forms.Shared
             ShowInTaskbar = false;
             ClientSize = new Size(500, 470);
             Font = new Font("Segoe UI", 9F);
-            BackColor = Color.WhiteSmoke;
+            BackColor = ThemeManager.Colors.Background;
 
             var lblRoomNumber = CreateLabel("Room Number", 24, 24);
             txtRoomNumber = CreateTextBox(24, 44, 200);
@@ -175,7 +175,7 @@ namespace HospitalManagementSystem.Forms.Shared
                 Left = left,
                 Top = top,
                 AutoSize = true,
-                ForeColor = Color.FromArgb(33, 49, 65)
+                ForeColor = ThemeManager.Colors.TextPrimary
             };
         }
 

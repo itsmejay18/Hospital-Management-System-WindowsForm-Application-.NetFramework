@@ -328,7 +328,7 @@ namespace HospitalManagementSystem.UserControls
             series2.BorderWidth = 3;
             series2.ChartArea = "ChartArea1";
             series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series2.Color = System.Drawing.Color.FromArgb(((int)(((byte)(79)))), ((int)(((byte)(70)))), ((int)(((byte)(229)))));
+            series2.Color = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(163)))), ((int)(((byte)(136)))));
             series2.Legend = "Legend1";
             series2.MarkerSize = 7;
             series2.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;

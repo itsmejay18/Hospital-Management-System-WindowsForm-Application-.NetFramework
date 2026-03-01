@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace HospitalManagementSystem.Helpers
@@ -16,34 +18,44 @@ namespace HospitalManagementSystem.Helpers
             new Dictionary<Control, EventHandler>();
         private static readonly HashSet<SplitContainer> ManagedMasterDetailSplitters =
             new HashSet<SplitContainer>();
+        private static readonly Dictionary<TextBox, EventHandler> SearchCueHandlers =
+            new Dictionary<TextBox, EventHandler>();
+        private static readonly HashSet<Control> DoubleBufferedControls =
+            new HashSet<Control>();
+        private const int EmSetCueBanner = 0x1501;
         private static Image BrandingLogoCache;
         private static bool BrandingLogoLoadAttempted;
         private static Icon BrandingIconCache;
         private static bool BrandingIconLoadAttempted;
+        private static readonly PropertyInfo DoubleBufferedProperty =
+            typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, string lParam);
 
         /// <summary>
         /// Semantic color palette.
         /// </summary>
         public static class Colors
         {
-            public static readonly Color Primary = ColorTranslator.FromHtml("#79BFE8");
-            public static readonly Color PrimaryHover = ColorTranslator.FromHtml("#67B3E4");
-            public static readonly Color PrimaryPressed = ColorTranslator.FromHtml("#56A6DD");
-            public static readonly Color PrimarySoft = ColorTranslator.FromHtml("#E9F6FF");
-            public static readonly Color Background = ColorTranslator.FromHtml("#EEF7FF");
+            public static readonly Color Primary = ColorTranslator.FromHtml("#00C9A7");
+            public static readonly Color PrimaryHover = ColorTranslator.FromHtml("#00B493");
+            public static readonly Color PrimaryPressed = ColorTranslator.FromHtml("#009C80");
+            public static readonly Color PrimarySoft = ColorTranslator.FromHtml("#D8F9F2");
+            public static readonly Color Background = ColorTranslator.FromHtml("#EEF9F6");
             public static readonly Color Surface = Color.White;
-            public static readonly Color SurfaceMuted = ColorTranslator.FromHtml("#F4FAFF");
-            public static readonly Color Border = ColorTranslator.FromHtml("#CFE3F3");
-            public static readonly Color TextPrimary = ColorTranslator.FromHtml("#1F3D57");
-            public static readonly Color TextSecondary = ColorTranslator.FromHtml("#6A8AA3");
-            public static readonly Color Danger = ColorTranslator.FromHtml("#5AAEDD");
-            public static readonly Color DangerHover = ColorTranslator.FromHtml("#4A9BC9");
-            public static readonly Color Sidebar = ColorTranslator.FromHtml("#FFFFFF");
-            public static readonly Color SidebarItem = ColorTranslator.FromHtml("#FFFFFF");
-            public static readonly Color SidebarItemHover = ColorTranslator.FromHtml("#F2F9FF");
-            public static readonly Color SidebarItemActive = ColorTranslator.FromHtml("#79BFE8");
-            public static readonly Color SidebarText = ColorTranslator.FromHtml("#1F3D57");
-            public static readonly Color SidebarBorder = ColorTranslator.FromHtml("#D6E9F8");
+            public static readonly Color SurfaceMuted = ColorTranslator.FromHtml("#F6FCFA");
+            public static readonly Color Border = ColorTranslator.FromHtml("#BFE8DF");
+            public static readonly Color TextPrimary = ColorTranslator.FromHtml("#0F2E2A");
+            public static readonly Color TextSecondary = ColorTranslator.FromHtml("#4A6E68");
+            public static readonly Color Danger = ColorTranslator.FromHtml("#F04D5E");
+            public static readonly Color DangerHover = ColorTranslator.FromHtml("#D93A4C");
+            public static readonly Color Sidebar = ColorTranslator.FromHtml("#0A5F59");
+            public static readonly Color SidebarItem = ColorTranslator.FromHtml("#0A5F59");
+            public static readonly Color SidebarItemHover = ColorTranslator.FromHtml("#0E726A");
+            public static readonly Color SidebarItemActive = ColorTranslator.FromHtml("#00C9A7");
+            public static readonly Color SidebarText = ColorTranslator.FromHtml("#F3FFFD");
+            public static readonly Color SidebarBorder = ColorTranslator.FromHtml("#21A59A");
         }
 
         /// <summary>
@@ -105,14 +117,14 @@ namespace HospitalManagementSystem.Helpers
             if (headerRoot != null)
             {
                 headerRoot.BackColor = Colors.Surface;
-                headerRoot.Padding = new Padding(20, 0, 20, 0);
+                headerRoot.Padding = new Padding(20, 8, 20, 8);
                 headerRoot.Paint -= DrawSectionBottomBorder;
                 headerRoot.Paint += DrawSectionBottomBorder;
             }
 
             if (titleLabel != null)
             {
-                titleLabel.Font = Fonts.Heading;
+                titleLabel.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Regular);
                 titleLabel.ForeColor = Colors.TextPrimary;
             }
 
@@ -141,7 +153,7 @@ namespace HospitalManagementSystem.Helpers
 
             if (appNameLabel != null)
             {
-                appNameLabel.ForeColor = Colors.TextPrimary;
+                appNameLabel.ForeColor = Colors.SidebarText;
                 appNameLabel.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular);
             }
 
@@ -178,35 +190,44 @@ namespace HospitalManagementSystem.Helpers
                 return;
             }
 
-            button.FlatStyle = FlatStyle.Flat;
-            button.FlatAppearance.BorderSize = 1;
-            button.FlatAppearance.BorderColor = isDanger
-                ? ColorTranslator.FromHtml("#B7DCF4")
+            var hoverBackColor = isDanger
+                ? Colors.DangerHover
                 : isActive
-                    ? Colors.Primary
-                    : Colors.SidebarBorder;
-            button.FlatAppearance.MouseOverBackColor = isDanger ? ColorTranslator.FromHtml("#EEF8FF") : Colors.SidebarItemHover;
-            button.FlatAppearance.MouseDownBackColor = isDanger ? ColorTranslator.FromHtml("#E1F2FF") : Colors.PrimarySoft;
+                    ? Colors.SidebarItemActive
+                    : Colors.SidebarItemHover;
+            var downBackColor = isDanger
+                ? Colors.DangerHover
+                : isActive
+                    ? Colors.SidebarItemActive
+                    : Colors.Primary;
+
+            button.FlatStyle = FlatStyle.Flat;
+            button.UseVisualStyleBackColor = false;
+            button.FlatAppearance.BorderSize = 0;
+            button.FlatAppearance.BorderColor = isDanger ? Colors.Danger : Colors.SidebarBorder;
+            button.FlatAppearance.CheckedBackColor = isDanger ? Colors.Danger : Colors.SidebarItemActive;
+            button.FlatAppearance.MouseOverBackColor = hoverBackColor;
+            button.FlatAppearance.MouseDownBackColor = downBackColor;
             button.Font = Fonts.Medium;
             button.ImageAlign = ContentAlignment.MiddleLeft;
             button.TextAlign = ContentAlignment.MiddleLeft;
             button.TextImageRelation = TextImageRelation.ImageBeforeText;
-            button.Padding = new Padding(12, 0, 0, 0);
-            button.Margin = new Padding(0, 0, 0, 6);
+            button.Padding = new Padding(16, 0, 0, 0);
+            button.Margin = new Padding(0, 0, 0, 8);
             button.Cursor = Cursors.Hand;
             var parentWidth = button.Parent?.ClientSize.Width ?? 220;
             button.Width = Math.Max(170, parentWidth - 16);
-            button.Height = 44;
+            button.Height = 42;
 
             if (isDanger)
             {
-                button.BackColor = Colors.SidebarItem;
-                button.ForeColor = Colors.Danger;
+                button.BackColor = Colors.Danger;
+                button.ForeColor = Color.White;
                 return;
             }
 
             button.BackColor = isActive ? Colors.SidebarItemActive : Colors.SidebarItem;
-            button.ForeColor = isActive ? Color.White : Colors.TextPrimary;
+            button.ForeColor = isActive ? Color.White : Colors.SidebarText;
         }
 
         /// <summary>
@@ -221,7 +242,11 @@ namespace HospitalManagementSystem.Helpers
 
             panel.BackColor = Colors.Surface;
             panel.BorderStyle = BorderStyle.None;
-            ApplyRoundedCorners(panel, radius);
+            if (panel.Region != null)
+            {
+                panel.Region.Dispose();
+                panel.Region = null;
+            }
             panel.Paint -= DrawCardBorder;
             panel.Paint += DrawCardBorder;
         }
@@ -264,7 +289,7 @@ namespace HospitalManagementSystem.Helpers
                     button.BackColor = Colors.Surface;
                     button.ForeColor = Colors.TextPrimary;
                     button.FlatAppearance.BorderColor = Colors.Border;
-                    button.FlatAppearance.MouseOverBackColor = Colors.SurfaceMuted;
+                    button.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#F5FAF8");
                     button.FlatAppearance.MouseDownBackColor = Colors.PrimarySoft;
                     break;
             }
@@ -282,19 +307,23 @@ namespace HospitalManagementSystem.Helpers
 
             grid.EnableHeadersVisualStyles = false;
             grid.BackgroundColor = Colors.Surface;
-            grid.BorderStyle = BorderStyle.None;
+            grid.BorderStyle = BorderStyle.FixedSingle;
             grid.GridColor = Colors.Border;
-            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.Single;
             grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            grid.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            grid.RowHeadersVisible = false;
+            grid.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            grid.RowHeadersVisible = true;
+            grid.RowHeadersWidth = Math.Max(grid.RowHeadersWidth, 46);
             grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             grid.MultiSelect = false;
             grid.AllowUserToResizeRows = false;
             grid.RowTemplate.Height = 30;
-            grid.ColumnHeadersHeight = 36;
+            grid.ColumnHeadersHeight = 34;
+            grid.AllowUserToAddRows = false;
+            grid.AllowUserToDeleteRows = false;
+            grid.AllowUserToOrderColumns = false;
 
-            var headerColor = ColorTranslator.FromHtml("#74B9E6");
+            var headerColor = Colors.PrimaryPressed;
             grid.ColumnHeadersDefaultCellStyle.BackColor = headerColor;
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = headerColor;
@@ -302,14 +331,19 @@ namespace HospitalManagementSystem.Helpers
             grid.ColumnHeadersDefaultCellStyle.Font = Fonts.Medium;
             grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
+            grid.RowHeadersDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#EEF9F6");
+            grid.RowHeadersDefaultCellStyle.ForeColor = Colors.TextSecondary;
+            grid.RowHeadersDefaultCellStyle.SelectionBackColor = headerColor;
+            grid.RowHeadersDefaultCellStyle.SelectionForeColor = Color.White;
+
             grid.DefaultCellStyle.BackColor = Colors.Surface;
             grid.DefaultCellStyle.ForeColor = Colors.TextPrimary;
-            grid.DefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
-            grid.DefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
+            grid.DefaultCellStyle.SelectionBackColor = headerColor;
+            grid.DefaultCellStyle.SelectionForeColor = Color.White;
             grid.DefaultCellStyle.Font = Fonts.Regular;
-            grid.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F7FCFF");
-            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = Colors.PrimarySoft;
-            grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = Colors.TextPrimary;
+            grid.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F7FCFA");
+            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = headerColor;
+            grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = Color.White;
         }
 
         /// <summary>
@@ -323,7 +357,10 @@ namespace HospitalManagementSystem.Helpers
             }
 
             panel.BackColor = Colors.Surface;
-            panel.BorderStyle = BorderStyle.FixedSingle;
+            panel.BorderStyle = BorderStyle.None;
+            panel.Padding = new Padding(Math.Max(panel.Padding.Left, 10), Math.Max(panel.Padding.Top, 8), Math.Max(panel.Padding.Right, 10), Math.Max(panel.Padding.Bottom, 8));
+            panel.Paint -= DrawSectionBottomBorder;
+            panel.Paint += DrawSectionBottomBorder;
         }
 
         /// <summary>
@@ -344,17 +381,26 @@ namespace HospitalManagementSystem.Helpers
 
             StyleModuleBarPanel(searchPanel);
             StyleModuleBarPanel(actionsPanel);
+            NormalizeButtonPanel(searchPanel);
+            NormalizeButtonPanel(actionsPanel);
 
             if (splitContainer != null)
             {
                 splitContainer.BackColor = Colors.Border;
                 splitContainer.Panel1.BackColor = Colors.Surface;
                 splitContainer.Panel2.BackColor = Colors.Surface;
-                splitContainer.SplitterWidth = 4;
-                splitContainer.Panel1MinSize = Math.Max(splitContainer.Panel1MinSize, 520);
-                splitContainer.Panel2MinSize = Math.Max(splitContainer.Panel2MinSize, 340);
-                splitContainer.FixedPanel = FixedPanel.Panel2;
-                BalanceMasterDetailSplitter(splitContainer, 420);
+                splitContainer.SplitterWidth = 5;
+                splitContainer.Panel1MinSize = Math.Max(splitContainer.Panel1MinSize, 540);
+                splitContainer.Panel2MinSize = Math.Max(splitContainer.Panel2MinSize, 360);
+                splitContainer.FixedPanel = FixedPanel.None;
+                splitContainer.IsSplitterFixed = false;
+                BalanceMasterDetailSplitter(splitContainer, Math.Max(380, splitContainer.Panel2MinSize), 0.38F);
+
+                if (splitContainer.Panel2.Controls.Count == 1 && splitContainer.Panel2.Controls[0] is GroupBox detailGroup)
+                {
+                    detailGroup.Dock = DockStyle.Fill;
+                    detailGroup.Margin = new Padding(8);
+                }
             }
 
             if (detailsGroup != null)
@@ -384,6 +430,55 @@ namespace HospitalManagementSystem.Helpers
             textBox.BackColor = Colors.Surface;
             textBox.ForeColor = Colors.TextPrimary;
             textBox.Font = Fonts.Regular;
+        }
+
+        /// <summary>
+        /// Styles a search box and applies native placeholder text.
+        /// </summary>
+        public static void StyleSearchTextBox(TextBox textBox, string placeholderText)
+        {
+            if (textBox == null)
+            {
+                return;
+            }
+
+            StyleTextBox(textBox);
+            if (string.IsNullOrWhiteSpace(placeholderText))
+            {
+                return;
+            }
+
+            void ApplyCue()
+            {
+                if (!textBox.IsHandleCreated)
+                {
+                    return;
+                }
+
+                try
+                {
+                    SendMessage(textBox.Handle, EmSetCueBanner, IntPtr.Zero, placeholderText);
+                }
+                catch
+                {
+                    // Ignore placeholder rendering issues on unsupported hosts.
+                }
+            }
+
+            if (textBox.IsHandleCreated)
+            {
+                ApplyCue();
+            }
+
+            if (SearchCueHandlers.TryGetValue(textBox, out var existingHandler))
+            {
+                textBox.HandleCreated -= existingHandler;
+            }
+
+            EventHandler handler = (_, __) => ApplyCue();
+            textBox.HandleCreated += handler;
+            textBox.Disposed += (_, __) => SearchCueHandlers.Remove(textBox);
+            SearchCueHandlers[textBox] = handler;
         }
 
         /// <summary>
@@ -610,6 +705,7 @@ namespace HospitalManagementSystem.Helpers
             groupBox.Font = Fonts.Medium;
             groupBox.ForeColor = Colors.TextPrimary;
             groupBox.BackColor = Colors.Surface;
+            groupBox.Padding = new Padding(12, 24, 12, 12);
         }
 
         /// <summary>
@@ -643,7 +739,7 @@ namespace HospitalManagementSystem.Helpers
             var isDarkParent = IsDarkColor(label.Parent?.BackColor ?? Color.Empty);
 
             label.ForeColor = label.ForeColor == Color.White || isDarkParent
-                ? Color.White
+                ? Colors.SidebarText
                 : IsSecondaryLabel(label)
                     ? Colors.TextSecondary
                     : Colors.TextPrimary;
@@ -723,12 +819,10 @@ namespace HospitalManagementSystem.Helpers
                 return;
             }
 
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             var rect = new Rectangle(0, 0, panel.Width - 1, panel.Height - 1);
-            using (var path = CreateRoundedPath(rect, 10))
             using (var pen = new Pen(Colors.Border))
             {
-                e.Graphics.DrawPath(pen, path);
+                e.Graphics.DrawRectangle(pen, rect);
             }
         }
 
@@ -751,7 +845,7 @@ namespace HospitalManagementSystem.Helpers
             }
         }
 
-        private static void BalanceMasterDetailSplitter(SplitContainer splitContainer, int targetDetailWidth)
+        private static void BalanceMasterDetailSplitter(SplitContainer splitContainer, int minimumDetailWidth, float detailRatio)
         {
             if (splitContainer == null)
             {
@@ -773,6 +867,7 @@ namespace HospitalManagementSystem.Helpers
 
                 var maxDistance = splitContainer.Width - splitContainer.Panel2MinSize - splitContainer.SplitterWidth;
                 var minDistance = splitContainer.Panel1MinSize;
+                var targetDetailWidth = Math.Max(minimumDetailWidth, (int)(splitContainer.Width * detailRatio));
                 var preferredDistance = splitContainer.Width - targetDetailWidth - splitContainer.SplitterWidth;
                 splitContainer.SplitterDistance = Math.Max(minDistance, Math.Min(preferredDistance, maxDistance));
             }
@@ -787,6 +882,29 @@ namespace HospitalManagementSystem.Helpers
             splitContainer.Resize += (_, __) => ApplyDistance();
             splitContainer.Disposed += (_, __) => ManagedMasterDetailSplitters.Remove(splitContainer);
             ManagedMasterDetailSplitters.Add(splitContainer);
+        }
+
+        private static void NormalizeButtonPanel(Panel panel)
+        {
+            if (panel == null)
+            {
+                return;
+            }
+
+            foreach (Control control in panel.Controls)
+            {
+                if (!(control is Button button))
+                {
+                    continue;
+                }
+
+                button.Height = Math.Max(button.Height, 34);
+                button.Width = Math.Max(button.Width, 88);
+                if (button.Top < 6)
+                {
+                    button.Top = 8;
+                }
+            }
         }
 
         private static Image GetBrandingLogo()
@@ -909,6 +1027,8 @@ namespace HospitalManagementSystem.Helpers
 
         private static void ApplySingleControlTheme(Control control)
         {
+            EnableDoubleBuffering(control);
+
             switch (control)
             {
                 case MenuStrip menuStrip:
@@ -982,6 +1102,37 @@ namespace HospitalManagementSystem.Helpers
             {
                 StyleUserControl(userControl);
             }
+        }
+
+        private static void EnableDoubleBuffering(Control control)
+        {
+            if (control == null || DoubleBufferedControls.Contains(control))
+            {
+                return;
+            }
+
+            if (control is Panel
+                || control is UserControl
+                || control is DataGridView
+                || control is TableLayoutPanel
+                || control is FlowLayoutPanel
+                || control is SplitContainer
+                || control is TabControl
+                || control is GroupBox
+                || control is Form)
+            {
+                try
+                {
+                    DoubleBufferedProperty?.SetValue(control, true, null);
+                }
+                catch
+                {
+                    // Best effort only.
+                }
+            }
+
+            control.Disposed += (_, __) => DoubleBufferedControls.Remove(control);
+            DoubleBufferedControls.Add(control);
         }
 
         private static void StyleUserControl(UserControl userControl)

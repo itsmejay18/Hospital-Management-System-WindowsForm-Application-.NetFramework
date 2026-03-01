@@ -43,6 +43,18 @@ namespace HospitalManagementSystem.Forms.Shared
                 _patient.Gender = cboGender.Text;
                 _patient.DateOfBirth = dtpDob.Value.Date;
 
+                if (string.IsNullOrWhiteSpace(_patient.FirstName))
+                {
+                    MessageBox.Show("First name is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(_patient.LastName))
+                {
+                    MessageBox.Show("Last name is required.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 if (_patient.PatientID == 0)
                 {
                     if (string.IsNullOrWhiteSpace(_patient.PatientCode))

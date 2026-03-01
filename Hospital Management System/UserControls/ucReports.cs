@@ -1,4 +1,5 @@
 using System.Windows.Forms;
+using System.Linq;
 using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Forms.Shared;
 using HospitalManagementSystem.Helpers;
@@ -27,6 +28,7 @@ namespace HospitalManagementSystem.UserControls
             }
 
             ConfigureGrid();
+            UpdateExportButtonState();
         }
 
         private async void btnLoad_Click(object sender, System.EventArgs e)
@@ -48,9 +50,12 @@ namespace HospitalManagementSystem.UserControls
                 var table = await _service.GetReportAsync(selectedReport).ConfigureAwait(true);
                 dgvReport.DataSource = table;
                 ConfigureColumns();
+                UpdateExportButtonState();
             }
             catch (System.Exception ex)
             {
+                dgvReport.DataSource = null;
+                UpdateExportButtonState();
                 MessageBox.Show($"Report load failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -100,33 +105,72 @@ namespace HospitalManagementSystem.UserControls
 
         private void btnExportExcel_Click(object sender, System.EventArgs e)
         {
+            if (!CanExport())
+            {
+                MessageBox.Show("Load a report with data before exporting.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             using (var sfd = new SaveFileDialog { Filter = "Excel (*.xlsx)|*.xlsx" })
             {
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    ExportHelper.ExportToExcel(dgvReport, sfd.FileName);
+                    try
+                    {
+                        ExportHelper.ExportToExcel(dgvReport, sfd.FileName);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show($"Excel export failed: {ex.Message}", "Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
 
         private void btnExportCsv_Click(object sender, System.EventArgs e)
         {
+            if (!CanExport())
+            {
+                MessageBox.Show("Load a report with data before exporting.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             using (var sfd = new SaveFileDialog { Filter = "CSV (*.csv)|*.csv" })
             {
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    ExportHelper.ExportToCsv(dgvReport, sfd.FileName);
+                    try
+                    {
+                        ExportHelper.ExportToCsv(dgvReport, sfd.FileName);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show($"CSV export failed: {ex.Message}", "Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
 
         private void btnExportPdf_Click(object sender, System.EventArgs e)
         {
+            if (!CanExport())
+            {
+                MessageBox.Show("Load a report with data before exporting.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             using (var sfd = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf" })
             {
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    ExportHelper.ExportToPdf(dgvReport, sfd.FileName);
+                    try
+                    {
+                        ExportHelper.ExportToPdf(dgvReport, sfd.FileName);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show($"PDF export failed: {ex.Message}", "Export", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
@@ -135,7 +179,12 @@ namespace HospitalManagementSystem.UserControls
         {
             using (var dlg = new frmUserEdit())
             {
-                dlg.ShowDialog(this);
+                IWin32Window owner = FindForm();
+                if (owner == null)
+                {
+                    owner = this;
+                }
+                dlg.ShowDialog(owner);
             }
         }
 
@@ -143,7 +192,12 @@ namespace HospitalManagementSystem.UserControls
         {
             using (var dlg = new frmAuditLog())
             {
-                dlg.ShowDialog(this);
+                IWin32Window owner = FindForm();
+                if (owner == null)
+                {
+                    owner = this;
+                }
+                dlg.ShowDialog(owner);
             }
         }
 
@@ -151,7 +205,12 @@ namespace HospitalManagementSystem.UserControls
         {
             using (var dlg = new frmBackupRestore())
             {
-                dlg.ShowDialog(this);
+                IWin32Window owner = FindForm();
+                if (owner == null)
+                {
+                    owner = this;
+                }
+                dlg.ShowDialog(owner);
             }
         }
 
@@ -167,6 +226,20 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnAuditLog, ThemeButtonKind.Secondary);
             ThemeManager.StyleButton(btnBackup, ThemeButtonKind.Secondary);
             ThemeManager.StyleComboBox(cboReport);
+        }
+
+        private bool CanExport()
+        {
+            return dgvReport.Columns.Count > 0
+                && dgvReport.Rows.Cast<DataGridViewRow>().Any(row => !row.IsNewRow);
+        }
+
+        private void UpdateExportButtonState()
+        {
+            var enabled = CanExport();
+            btnExportExcel.Enabled = enabled;
+            btnExportCsv.Enabled = enabled;
+            btnExportPdf.Enabled = enabled;
         }
     }
 }

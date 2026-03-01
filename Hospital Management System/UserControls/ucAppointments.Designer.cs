@@ -157,7 +157,7 @@ namespace HospitalManagementSystem.UserControls
             this.lblSearch.Name = "lblSearch";
             this.lblSearch.Size = new System.Drawing.Size(63, 15);
             this.lblSearch.TabIndex = 0;
-            this.lblSearch.Text = "Search Appt";
+            this.lblSearch.Text = "Search Appointments";
             // 
             // pnlButtons
             // 

@@ -491,6 +491,7 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnDelete, ThemeButtonKind.Danger);
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
+            ThemeManager.StyleSearchTextBox(txtSearch, "Search patient code / name");
         }
     }
 }

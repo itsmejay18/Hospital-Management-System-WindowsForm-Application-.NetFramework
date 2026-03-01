@@ -1,5 +1,6 @@
 using System.Data;
 using System.IO;
+using System;
 using System.Windows.Forms;
 using ClosedXML.Excel;
 using iTextSharp.text;
@@ -17,6 +18,8 @@ namespace HospitalManagementSystem.Helpers
         /// </summary>
         public static void ExportToExcel(DataGridView grid, string filePath)
         {
+            EnsureGridHasData(grid);
+
             var table = new DataTable();
             foreach (DataGridViewColumn col in grid.Columns)
             {
@@ -46,11 +49,13 @@ namespace HospitalManagementSystem.Helpers
         /// </summary>
         public static void ExportToCsv(DataGridView grid, string filePath)
         {
+            EnsureGridHasData(grid);
+
             using (var writer = new StreamWriter(filePath))
             {
                 for (var i = 0; i < grid.Columns.Count; i++)
                 {
-                    writer.Write(grid.Columns[i].HeaderText);
+                    writer.Write(EscapeCsv(grid.Columns[i].HeaderText));
                     if (i < grid.Columns.Count - 1) writer.Write(",");
                 }
                 writer.WriteLine();
@@ -60,7 +65,7 @@ namespace HospitalManagementSystem.Helpers
                     if (row.IsNewRow) continue;
                     for (var i = 0; i < grid.Columns.Count; i++)
                     {
-                        writer.Write(row.Cells[i].Value);
+                        writer.Write(EscapeCsv(row.Cells[i].Value?.ToString() ?? string.Empty));
                         if (i < grid.Columns.Count - 1) writer.Write(",");
                     }
                     writer.WriteLine();
@@ -73,6 +78,8 @@ namespace HospitalManagementSystem.Helpers
         /// </summary>
         public static void ExportToPdf(DataGridView grid, string filePath)
         {
+            EnsureGridHasData(grid);
+
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 var doc = new Document();
@@ -97,6 +104,25 @@ namespace HospitalManagementSystem.Helpers
                 doc.Add(table);
                 doc.Close();
             }
+        }
+
+        private static void EnsureGridHasData(DataGridView grid)
+        {
+            if (grid == null || grid.Columns.Count == 0)
+            {
+                throw new InvalidOperationException("There is no report data to export.");
+            }
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            var normalized = value ?? string.Empty;
+            if (!normalized.Contains(",") && !normalized.Contains("\"") && !normalized.Contains("\n") && !normalized.Contains("\r"))
+            {
+                return normalized;
+            }
+
+            return $"\"{normalized.Replace("\"", "\"\"")}\"";
         }
     }
 }

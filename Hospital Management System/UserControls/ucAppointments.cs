@@ -299,14 +299,26 @@ namespace HospitalManagementSystem.UserControls
             ApplyFilter(txtSearch.Text);
         }
 
-        private void btnAdd_Click(object sender, EventArgs e)
+        private async void btnAdd_Click(object sender, EventArgs e)
         {
-            using (var dlg = new Forms.Shared.frmAppointmentEdit())
+            try
             {
-                if (dlg.ShowDialog(this) == DialogResult.OK)
+                using (var dlg = new Forms.Shared.frmAppointmentEdit())
                 {
-                    _ = ReloadAsync();
+                    IWin32Window owner = FindForm();
+                    if (owner == null)
+                    {
+                        owner = this;
+                    }
+                    if (dlg.ShowDialog(owner) == DialogResult.OK)
+                    {
+                        await ReloadAsync().ConfigureAwait(true);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to add appointment: {ex.Message}", "Appointments", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -456,6 +468,7 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnDelete, ThemeButtonKind.Danger);
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
+            ThemeManager.StyleSearchTextBox(txtSearch, "Search appointment / patient / doctor");
         }
     }
 }

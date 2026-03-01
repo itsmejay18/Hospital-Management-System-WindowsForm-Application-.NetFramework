@@ -17,8 +17,10 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.Button btnAppointments;
         private System.Windows.Forms.Button btnRooms;
         private System.Windows.Forms.Button btnBilling;
+        private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Button btnUsers;
         private System.Windows.Forms.Button btnReports;
+        private System.Windows.Forms.Button btnProfile;
         private System.Windows.Forms.Button btnLogout;
 
         protected override void Dispose(bool disposing)
@@ -45,8 +47,10 @@ namespace HospitalManagementSystem.UserControls
             this.btnAppointments = new System.Windows.Forms.Button();
             this.btnRooms = new System.Windows.Forms.Button();
             this.btnBilling = new System.Windows.Forms.Button();
+            this.btnSettings = new System.Windows.Forms.Button();
             this.btnUsers = new System.Windows.Forms.Button();
             this.btnReports = new System.Windows.Forms.Button();
+            this.btnProfile = new System.Windows.Forms.Button();
             this.btnLogout = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.picLogo)).BeginInit();
             this.pnlHeader.SuspendLayout();
@@ -57,7 +61,7 @@ namespace HospitalManagementSystem.UserControls
             // 
             // pnlHeader
             // 
-            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(120)))), ((int)(((byte)(210)))));
+            this.pnlHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(14)))), ((int)(((byte)(109)))), ((int)(((byte)(103)))));
             this.pnlHeader.Controls.Add(this.picLogo);
             this.pnlHeader.Controls.Add(this.lblAppName);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
@@ -80,7 +84,7 @@ namespace HospitalManagementSystem.UserControls
             this.lblAppName.AutoEllipsis = false;
             this.lblAppName.AutoSize = false;
             this.lblAppName.Font = new System.Drawing.Font("Segoe UI Semibold", 10.5F);
-            this.lblAppName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
+            this.lblAppName.ForeColor = System.Drawing.Color.White;
             this.lblAppName.Location = new System.Drawing.Point(80, 20);
             this.lblAppName.Name = "lblAppName";
             this.lblAppName.Size = new System.Drawing.Size(200, 62);
@@ -116,6 +120,7 @@ namespace HospitalManagementSystem.UserControls
             this.flpMenu.Controls.Add(this.btnAppointments);
             this.flpMenu.Controls.Add(this.btnRooms);
             this.flpMenu.Controls.Add(this.btnBilling);
+            this.flpMenu.Controls.Add(this.btnSettings);
             this.flpMenu.Controls.Add(this.btnUsers);
             this.flpMenu.Controls.Add(this.btnReports);
             this.flpMenu.AutoScroll = true;
@@ -130,12 +135,13 @@ namespace HospitalManagementSystem.UserControls
             // 
             // pnlFooter
             // 
+            this.pnlFooter.Controls.Add(this.btnProfile);
             this.pnlFooter.Controls.Add(this.btnLogout);
             this.pnlFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlFooter.Location = new System.Drawing.Point(0, 536);
+            this.pnlFooter.Location = new System.Drawing.Point(0, 490);
             this.pnlFooter.Name = "pnlFooter";
             this.pnlFooter.Padding = new System.Windows.Forms.Padding(8, 10, 8, 12);
-            this.pnlFooter.Size = new System.Drawing.Size(292, 64);
+            this.pnlFooter.Size = new System.Drawing.Size(292, 110);
             this.pnlFooter.TabIndex = 3;
             // 
             // btnDashboard
@@ -204,13 +210,24 @@ namespace HospitalManagementSystem.UserControls
             this.btnBilling.UseVisualStyleBackColor = true;
             this.btnBilling.Click += new System.EventHandler(this.btnBilling_Click);
             // 
+            // btnSettings
+            // 
+            this.btnSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSettings.Location = new System.Drawing.Point(11, 239);
+            this.btnSettings.Name = "btnSettings";
+            this.btnSettings.Size = new System.Drawing.Size(190, 32);
+            this.btnSettings.TabIndex = 6;
+            this.btnSettings.Text = "Settings";
+            this.btnSettings.UseVisualStyleBackColor = true;
+            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
+            // 
             // btnUsers
             // 
             this.btnUsers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUsers.Location = new System.Drawing.Point(11, 239);
+            this.btnUsers.Location = new System.Drawing.Point(11, 277);
             this.btnUsers.Name = "btnUsers";
             this.btnUsers.Size = new System.Drawing.Size(190, 32);
-            this.btnUsers.TabIndex = 6;
+            this.btnUsers.TabIndex = 7;
             this.btnUsers.Text = "Users";
             this.btnUsers.UseVisualStyleBackColor = true;
             this.btnUsers.Click += new System.EventHandler(this.btnUsers_Click);
@@ -218,21 +235,32 @@ namespace HospitalManagementSystem.UserControls
             // btnReports
             // 
             this.btnReports.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnReports.Location = new System.Drawing.Point(11, 277);
+            this.btnReports.Location = new System.Drawing.Point(11, 315);
             this.btnReports.Name = "btnReports";
             this.btnReports.Size = new System.Drawing.Size(190, 32);
-            this.btnReports.TabIndex = 7;
+            this.btnReports.TabIndex = 8;
             this.btnReports.Text = "Reports";
             this.btnReports.UseVisualStyleBackColor = true;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);
             // 
+            // btnProfile
+            // 
+            this.btnProfile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnProfile.Location = new System.Drawing.Point(11, 12);
+            this.btnProfile.Name = "btnProfile";
+            this.btnProfile.Size = new System.Drawing.Size(194, 38);
+            this.btnProfile.TabIndex = 9;
+            this.btnProfile.Text = "Profile";
+            this.btnProfile.UseVisualStyleBackColor = true;
+            this.btnProfile.Click += new System.EventHandler(this.btnProfile_Click);
+            // 
             // btnLogout
             // 
             this.btnLogout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogout.Location = new System.Drawing.Point(11, 14);
+            this.btnLogout.Location = new System.Drawing.Point(11, 57);
             this.btnLogout.Name = "btnLogout";
             this.btnLogout.Size = new System.Drawing.Size(194, 38);
-            this.btnLogout.TabIndex = 8;
+            this.btnLogout.TabIndex = 10;
             this.btnLogout.Text = "Logout";
             this.btnLogout.UseVisualStyleBackColor = true;
             this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);
