@@ -68,10 +68,22 @@ namespace HospitalManagementSystem.Forms
                 }
 
                 UserSession.Start(authenticatedUser);
-                var main = new frmMain(authenticatedUser);
                 Hide();
-                main.FormClosed += (_, __) => Close();
-                main.Show();
+                using (var main = new frmMain(authenticatedUser))
+                {
+                    main.ShowDialog(this);
+                    if (main.LogoutRequested)
+                    {
+                        txtPassword.Clear();
+                        lblStatus.Text = "Logged out.";
+                        Show();
+                        Activate();
+                        txtUsername.Focus();
+                        return;
+                    }
+                }
+
+                Close();
             }
             catch (Exception ex)
             {

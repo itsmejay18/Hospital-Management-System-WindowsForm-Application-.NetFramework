@@ -33,18 +33,18 @@ namespace HospitalManagementSystem.BLL.Services
                 return await GetAllAsync().ConfigureAwait(false);
             }
 
-            var result = await _repository.SearchPatientsAsync(
-                    query.Trim(),
-                    query.Trim(),
-                    query.Trim(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    1,
-                    300)
-                .ConfigureAwait(false);
-            return result.Items.ToList();
+            var term = query.Trim();
+            var patients = await GetAllAsync().ConfigureAwait(false);
+            return patients
+                .Where(patient =>
+                    ContainsInsensitive(patient.PatientCode, term)
+                    || ContainsInsensitive(patient.FirstName, term)
+                    || ContainsInsensitive(patient.LastName, term)
+                    || ContainsInsensitive(patient.FullName, term)
+                    || ContainsInsensitive(patient.IdentificationNumber, term)
+                    || ContainsInsensitive(patient.Nationality, term)
+                    || ContainsInsensitive(patient.BloodGroup, term))
+                .ToList();
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int patientId)
         {
-            AuthorizationHelper.EnsureRole("Administrator");
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Nurse", "Doctor");
             return _repository.DeletePatientAsync(patientId);
         }
 
@@ -102,6 +102,12 @@ namespace HospitalManagementSystem.BLL.Services
             {
                 throw new ArgumentException("Date of birth cannot be in the future.");
             }
+        }
+
+        private static bool ContainsInsensitive(string value, string searchText)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                   && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

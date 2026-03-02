@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +18,10 @@ namespace HospitalManagementSystem.UserControls
         private readonly PatientService _service = new PatientService();
         private PatientEditorMode _editorMode = PatientEditorMode.View;
         private int? _editingPatientId;
+        private ComboBox _searchFilter;
+        private PictureBox _picProfileImage;
+        private Button _btnUploadPhoto;
+        private byte[] _patientPhotoBytes;
 
         private enum PatientEditorMode
         {
@@ -23,13 +30,24 @@ namespace HospitalManagementSystem.UserControls
             EditExisting = 2
         }
 
+        private enum PatientSearchFilter
+        {
+            All = 0,
+            Code = 1,
+            Name = 2,
+            Gender = 3,
+            IdNumber = 4
+        }
+
         public ucPatients()
         {
             InitializeComponent();
-            ApplyTheme();
             ConfigureGrid();
             ConfigureDetailInputs();
+            ConfigureSearchFilter();
+            ConfigurePhotoSection();
             HookEvents();
+            ApplyTheme();
             SetEditorMode(PatientEditorMode.View);
             Load += ucPatients_Load;
         }
@@ -45,6 +63,67 @@ namespace HospitalManagementSystem.UserControls
             colDob.FillWeight = 20F;
             colStatus.FillWeight = 14F;
             colDob.DefaultCellStyle.Format = "yyyy-MM-dd";
+        }
+
+        private void ConfigureSearchFilter()
+        {
+            _searchFilter = new ComboBox
+            {
+                Name = "cboSearchFilter",
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(608, 12),
+                Size = new Size(168, 23)
+            };
+
+            _searchFilter.Items.AddRange(new object[]
+            {
+                "All Fields",
+                "Patient Code",
+                "Patient Name",
+                "Gender",
+                "ID Number"
+            });
+            _searchFilter.SelectedIndex = 0;
+            pnlSearch.Controls.Add(_searchFilter);
+        }
+
+        private void ConfigurePhotoSection()
+        {
+            var photoPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 164,
+                Padding = new Padding(0, 6, 0, 6)
+            };
+
+            var lblPhoto = new Label
+            {
+                AutoSize = true,
+                Text = "Profile Image",
+                Location = new Point(3, 8)
+            };
+
+            _picProfileImage = new PictureBox
+            {
+                Location = new Point(6, 30),
+                Size = new Size(120, 120),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            _btnUploadPhoto = new Button
+            {
+                Text = "Upload Image",
+                Location = new Point(136, 74),
+                Size = new Size(118, 32)
+            };
+            _btnUploadPhoto.Click += btnUploadPhoto_Click;
+
+            photoPanel.Controls.Add(lblPhoto);
+            photoPanel.Controls.Add(_picProfileImage);
+            photoPanel.Controls.Add(_btnUploadPhoto);
+            pnlDetailScroll.Controls.Add(photoPanel);
+            photoPanel.BringToFront();
         }
 
         private void HookEvents()
@@ -65,7 +144,7 @@ namespace HospitalManagementSystem.UserControls
         private void ConfigureDetailInputs()
         {
             cboGender.Items.Clear();
-            cboGender.Items.AddRange(new object[] { "Male", "Female", "Other", "M", "F" });
+            cboGender.Items.AddRange(new object[] { "Male", "Female", "Other" });
             cboGender.SelectedIndex = -1;
         }
 
@@ -99,8 +178,8 @@ namespace HospitalManagementSystem.UserControls
             try
             {
                 UseWaitCursor = true;
-                var list = await _service.SearchAsync(txtSearch.Text).ConfigureAwait(true);
-                BindPatients(list);
+                var list = await _service.GetAllAsync().ConfigureAwait(true);
+                BindPatients(ApplySearchFilter(list, txtSearch.Text));
                 RestoreSelection(null);
                 SetEditorMode(PatientEditorMode.View);
             }
@@ -112,6 +191,61 @@ namespace HospitalManagementSystem.UserControls
             {
                 UseWaitCursor = false;
             }
+        }
+
+        private IEnumerable<Patient> ApplySearchFilter(IEnumerable<Patient> source, string searchText)
+        {
+            if (source == null)
+            {
+                return Enumerable.Empty<Patient>();
+            }
+
+            var term = (searchText ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return source;
+            }
+
+            switch (GetSelectedSearchFilter())
+            {
+                case PatientSearchFilter.Code:
+                    return source.Where(patient => ContainsInsensitive(patient.PatientCode, term));
+                case PatientSearchFilter.Name:
+                    return source.Where(patient =>
+                        ContainsInsensitive(patient.FirstName, term)
+                        || ContainsInsensitive(patient.LastName, term)
+                        || ContainsInsensitive(patient.FullName, term));
+                case PatientSearchFilter.Gender:
+                    return source.Where(patient => ContainsInsensitive(MapGenderCodeToDisplay(patient.Gender), term));
+                case PatientSearchFilter.IdNumber:
+                    return source.Where(patient => ContainsInsensitive(patient.IdentificationNumber, term));
+                case PatientSearchFilter.All:
+                default:
+                    return source.Where(patient =>
+                        ContainsInsensitive(patient.PatientCode, term)
+                        || ContainsInsensitive(patient.FirstName, term)
+                        || ContainsInsensitive(patient.LastName, term)
+                        || ContainsInsensitive(patient.FullName, term)
+                        || ContainsInsensitive(patient.IdentificationNumber, term)
+                        || ContainsInsensitive(patient.BloodGroup, term)
+                        || ContainsInsensitive(patient.Nationality, term));
+            }
+        }
+
+        private PatientSearchFilter GetSelectedSearchFilter()
+        {
+            if (_searchFilter == null || _searchFilter.SelectedIndex < 0)
+            {
+                return PatientSearchFilter.All;
+            }
+
+            return (PatientSearchFilter)_searchFilter.SelectedIndex;
+        }
+
+        private static bool ContainsInsensitive(string value, string searchText)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                   && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void BindPatients(System.Collections.Generic.IEnumerable<Patient> list)
@@ -187,6 +321,7 @@ namespace HospitalManagementSystem.UserControls
             txtIdType.Text = patient.IdentificationType;
             txtIdNumber.Text = patient.IdentificationNumber;
             chkIsActive.Checked = patient.IsActive;
+            SetPatientImage(patient.ProfileImage);
         }
 
         private void ClearDetailInputs()
@@ -202,11 +337,12 @@ namespace HospitalManagementSystem.UserControls
             txtIdType.Clear();
             txtIdNumber.Clear();
             chkIsActive.Checked = true;
+            SetPatientImage(null);
         }
 
         private void SetGenderSelection(string value)
         {
-            var normalized = (value ?? string.Empty).Trim();
+            var normalized = MapGenderCodeToDisplay((value ?? string.Empty).Trim());
             if (string.IsNullOrWhiteSpace(normalized))
             {
                 cboGender.SelectedIndex = -1;
@@ -352,6 +488,10 @@ namespace HospitalManagementSystem.UserControls
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             txtSearch.Clear();
+            if (_searchFilter != null)
+            {
+                _searchFilter.SelectedIndex = 0;
+            }
             await ReloadAsync().ConfigureAwait(true);
         }
 
@@ -401,7 +541,7 @@ namespace HospitalManagementSystem.UserControls
                     : txtCode.Text.Trim(),
                 FirstName = txtFirstName.Text.Trim(),
                 LastName = txtLastName.Text.Trim(),
-                Gender = cboGender.Text.Trim(),
+                Gender = MapGenderDisplayToCode(cboGender.Text),
                 DateOfBirth = dtpDob.Value.Date,
                 BloodGroup = txtBloodGroup.Text.Trim(),
                 MaritalStatus = txtMaritalStatus.Text.Trim(),
@@ -409,7 +549,8 @@ namespace HospitalManagementSystem.UserControls
                 IdentificationType = txtIdType.Text.Trim(),
                 IdentificationNumber = txtIdNumber.Text.Trim(),
                 IsActive = chkIsActive.Checked,
-                RegistrationDate = DateTime.Now
+                RegistrationDate = DateTime.Now,
+                ProfileImage = CloneBytes(_patientPhotoBytes)
             };
         }
 
@@ -472,12 +613,125 @@ namespace HospitalManagementSystem.UserControls
             cboGender.Enabled = editable;
             dtpDob.Enabled = editable;
             chkIsActive.Enabled = editable;
+            if (_btnUploadPhoto != null)
+            {
+                _btnUploadPhoto.Enabled = editable;
+            }
         }
 
         private static void SetReadOnlyState(TextBox textBox, bool isReadOnly)
         {
             textBox.ReadOnly = isReadOnly;
             textBox.BackColor = isReadOnly ? ThemeManager.Colors.SurfaceMuted : ThemeManager.Colors.Surface;
+        }
+
+        private void btnUploadPhoto_Click(object sender, EventArgs e)
+        {
+            if (_editorMode == PatientEditorMode.View)
+            {
+                MessageBox.Show("Click Add or Edit to upload an image.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (var dialog = new OpenFileDialog())
+            {
+                dialog.Title = "Select Patient Image";
+                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp";
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    SetPatientImage(File.ReadAllBytes(dialog.FileName));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Unable to load image: {ex.Message}", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void SetPatientImage(byte[] imageBytes)
+        {
+            _patientPhotoBytes = CloneBytes(imageBytes);
+            if (_picProfileImage == null)
+            {
+                return;
+            }
+
+            var oldImage = _picProfileImage.Image;
+            _picProfileImage.Image = CreateImageFromBytes(_patientPhotoBytes);
+            oldImage?.Dispose();
+        }
+
+        private static Image CreateImageFromBytes(byte[] imageBytes)
+        {
+            if (imageBytes == null || imageBytes.Length == 0)
+            {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(imageBytes))
+            using (var image = Image.FromStream(stream))
+            {
+                return new Bitmap(image);
+            }
+        }
+
+        private static byte[] CloneBytes(byte[] source)
+        {
+            if (source == null || source.Length == 0)
+            {
+                return null;
+            }
+
+            var copy = new byte[source.Length];
+            Buffer.BlockCopy(source, 0, copy, 0, source.Length);
+            return copy;
+        }
+
+        private static string MapGenderDisplayToCode(string displayValue)
+        {
+            var token = (displayValue ?? string.Empty).Trim();
+            if (token.Equals("Male", StringComparison.OrdinalIgnoreCase) || token.Equals("M", StringComparison.OrdinalIgnoreCase))
+            {
+                return "M";
+            }
+
+            if (token.Equals("Female", StringComparison.OrdinalIgnoreCase) || token.Equals("F", StringComparison.OrdinalIgnoreCase))
+            {
+                return "F";
+            }
+
+            if (token.Equals("Other", StringComparison.OrdinalIgnoreCase) || token.Equals("O", StringComparison.OrdinalIgnoreCase))
+            {
+                return "O";
+            }
+
+            return string.Empty;
+        }
+
+        private static string MapGenderCodeToDisplay(string codeValue)
+        {
+            var token = (codeValue ?? string.Empty).Trim();
+            if (token.Equals("M", StringComparison.OrdinalIgnoreCase) || token.Equals("Male", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Male";
+            }
+
+            if (token.Equals("F", StringComparison.OrdinalIgnoreCase) || token.Equals("Female", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Female";
+            }
+
+            if (token.Equals("O", StringComparison.OrdinalIgnoreCase) || token.Equals("Other", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Other";
+            }
+
+            return string.Empty;
         }
 
         private void ApplyTheme()
@@ -492,6 +746,20 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
             ThemeManager.StyleSearchTextBox(txtSearch, "Search patient code / name");
+            if (_searchFilter != null)
+            {
+                ThemeManager.StyleComboBox(_searchFilter);
+            }
+
+            if (_btnUploadPhoto != null)
+            {
+                ThemeManager.StyleButton(_btnUploadPhoto, ThemeButtonKind.Secondary);
+            }
+
+            if (_picProfileImage != null)
+            {
+                _picProfileImage.BackColor = ThemeManager.Colors.SurfaceMuted;
+            }
         }
     }
 }

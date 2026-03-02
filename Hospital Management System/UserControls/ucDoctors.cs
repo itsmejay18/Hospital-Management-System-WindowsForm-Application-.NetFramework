@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,11 +17,18 @@ namespace HospitalManagementSystem.UserControls
     {
         private readonly BindingList<Doctor> _doctors = new BindingList<Doctor>();
         private readonly DoctorService _service = new DoctorService();
+        private readonly UserService _userService = new UserService();
         private readonly BindingList<Specialization> _specializations = new BindingList<Specialization>();
         private readonly List<Doctor> _allDoctors = new List<Doctor>();
 
         private DoctorEditorMode _editorMode = DoctorEditorMode.View;
         private int? _editingDoctorId;
+        private ComboBox _searchFilter;
+        private PictureBox _picProfileImage;
+        private Button _btnUploadPhoto;
+        private byte[] _doctorProfileImageBytes;
+        private bool _doctorImageDirty;
+        private UserDetail _selectedDoctorDetail;
 
         private enum DoctorEditorMode
         {
@@ -27,10 +36,22 @@ namespace HospitalManagementSystem.UserControls
             EditExisting = 1
         }
 
+        private enum DoctorSearchFilter
+        {
+            All = 0,
+            Code = 1,
+            Name = 2,
+            Specialization = 3,
+            License = 4,
+            Availability = 5
+        }
+
         public ucDoctors()
         {
             InitializeComponent();
             ConfigureGrid();
+            ConfigureSearchFilter();
+            ConfigureImageSection();
             HookEvents();
             ApplyTheme();
             SetEditorMode(DoctorEditorMode.View);
@@ -51,6 +72,67 @@ namespace HospitalManagementSystem.UserControls
             cboSpecialization.DisplayMember = "SpecializationName";
             cboSpecialization.ValueMember = "SpecializationID";
             cboSpecialization.DataSource = _specializations;
+        }
+
+        private void ConfigureSearchFilter()
+        {
+            _searchFilter = new ComboBox
+            {
+                Name = "cboSearchFilter",
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(608, 12),
+                Size = new Size(168, 23)
+            };
+            _searchFilter.Items.AddRange(new object[]
+            {
+                "All Fields",
+                "Doctor Code",
+                "Doctor Name",
+                "Specialization",
+                "License No.",
+                "Availability"
+            });
+            _searchFilter.SelectedIndex = 0;
+            pnlSearch.Controls.Add(_searchFilter);
+        }
+
+        private void ConfigureImageSection()
+        {
+            var imagePanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 162,
+                Padding = new Padding(0, 6, 0, 6)
+            };
+
+            var lblImage = new Label
+            {
+                AutoSize = true,
+                Text = "Doctor Image",
+                Location = new Point(3, 8)
+            };
+
+            _picProfileImage = new PictureBox
+            {
+                Location = new Point(6, 30),
+                Size = new Size(120, 120),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            _btnUploadPhoto = new Button
+            {
+                Text = "Upload Image",
+                Location = new Point(136, 74),
+                Size = new Size(118, 32)
+            };
+            _btnUploadPhoto.Click += btnUploadPhoto_Click;
+
+            imagePanel.Controls.Add(lblImage);
+            imagePanel.Controls.Add(_picProfileImage);
+            imagePanel.Controls.Add(_btnUploadPhoto);
+            grpDetails.Controls.Add(imagePanel);
+            imagePanel.BringToFront();
         }
 
         private void HookEvents()
@@ -120,10 +202,7 @@ namespace HospitalManagementSystem.UserControls
             var filter = (term ?? string.Empty).Trim();
             var filtered = string.IsNullOrWhiteSpace(filter)
                 ? _allDoctors
-                : _allDoctors.Where(x =>
-                    ContainsInsensitive(x.DoctorCode, filter)
-                    || ContainsInsensitive(x.DoctorName, filter)
-                    || ContainsInsensitive(x.SpecializationName, filter)).ToList();
+                : _allDoctors.Where(doctor => MatchesDoctorSearch(doctor, filter)).ToList();
 
             _doctors.RaiseListChangedEvents = false;
             _doctors.Clear();
@@ -136,6 +215,40 @@ namespace HospitalManagementSystem.UserControls
             _doctors.ResetBindings();
 
             RestoreSelection(preferredDoctorId);
+        }
+
+        private bool MatchesDoctorSearch(Doctor doctor, string searchText)
+        {
+            switch (GetSelectedSearchFilter())
+            {
+                case DoctorSearchFilter.Code:
+                    return ContainsInsensitive(doctor?.DoctorCode, searchText);
+                case DoctorSearchFilter.Name:
+                    return ContainsInsensitive(doctor?.DoctorName, searchText);
+                case DoctorSearchFilter.Specialization:
+                    return ContainsInsensitive(doctor?.SpecializationName, searchText);
+                case DoctorSearchFilter.License:
+                    return ContainsInsensitive(doctor?.LicenseNumber, searchText);
+                case DoctorSearchFilter.Availability:
+                    return ContainsInsensitive(doctor != null && doctor.IsAvailable ? "Available" : "Unavailable", searchText);
+                case DoctorSearchFilter.All:
+                default:
+                    return ContainsInsensitive(doctor?.DoctorCode, searchText)
+                           || ContainsInsensitive(doctor?.DoctorName, searchText)
+                           || ContainsInsensitive(doctor?.SpecializationName, searchText)
+                           || ContainsInsensitive(doctor?.LicenseNumber, searchText)
+                           || ContainsInsensitive(doctor != null && doctor.IsAvailable ? "Available" : "Unavailable", searchText);
+            }
+        }
+
+        private DoctorSearchFilter GetSelectedSearchFilter()
+        {
+            if (_searchFilter == null || _searchFilter.SelectedIndex < 0)
+            {
+                return DoctorSearchFilter.All;
+            }
+
+            return (DoctorSearchFilter)_searchFilter.SelectedIndex;
         }
 
         private static bool ContainsInsensitive(string value, string searchText)
@@ -176,7 +289,9 @@ namespace HospitalManagementSystem.UserControls
                 dgvDoctors.CurrentCell = targetRow.Cells[0];
             }
 
-            PopulateDetails(targetRow.DataBoundItem as Doctor);
+            var selectedDoctor = targetRow.DataBoundItem as Doctor;
+            PopulateDetails(selectedDoctor);
+            _ = LoadSelectedDoctorDetailAsync(selectedDoctor);
             UpdateActionButtons();
         }
 
@@ -198,6 +313,8 @@ namespace HospitalManagementSystem.UserControls
                 nudConsultationFee.Value = 0;
                 chkAvailable.Checked = false;
                 dtpJoiningDate.Value = DateTime.Today;
+                _selectedDoctorDetail = null;
+                SetDoctorImage(null, markDirty: false);
                 return;
             }
 
@@ -217,6 +334,15 @@ namespace HospitalManagementSystem.UserControls
             else
             {
                 cboSpecialization.SelectedIndex = -1;
+            }
+
+            if (_selectedDoctorDetail == null || _selectedDoctorDetail.UserID != doctor.UserID)
+            {
+                SetDoctorImage(null, markDirty: false);
+            }
+            else
+            {
+                SetDoctorImage(_selectedDoctorDetail.ProfileImage, markDirty: false);
             }
         }
 
@@ -277,6 +403,10 @@ namespace HospitalManagementSystem.UserControls
 
             btnSave.Enabled = editable;
             btnCancel.Enabled = editable;
+            if (_btnUploadPhoto != null)
+            {
+                _btnUploadPhoto.Enabled = editable;
+            }
 
             txtSearch.Enabled = !editable;
             btnSearch.Enabled = !editable;
@@ -307,6 +437,10 @@ namespace HospitalManagementSystem.UserControls
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             txtSearch.Clear();
+            if (_searchFilter != null)
+            {
+                _searchFilter.SelectedIndex = 0;
+            }
             await ReloadAsync().ConfigureAwait(true);
         }
 
@@ -398,12 +532,14 @@ namespace HospitalManagementSystem.UserControls
                 };
 
                 var updated = await _service.UpdateAsync(payload).ConfigureAwait(true);
-                if (!updated)
+                var imageChanged = _doctorImageDirty;
+                if (!updated && !imageChanged)
                 {
                     MessageBox.Show("No changes were saved. Please refresh and try again.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                await SaveDoctorImageAsync(source.UserID, source.DoctorName).ConfigureAwait(true);
                 await ReloadAsync(payload.DoctorID).ConfigureAwait(true);
                 MessageBox.Show("Doctor updated successfully.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -420,7 +556,9 @@ namespace HospitalManagementSystem.UserControls
         private void btnCancel_Click(object sender, EventArgs e)
         {
             SetEditorMode(DoctorEditorMode.View);
-            PopulateDetails(GetSelectedDoctor());
+            var selectedDoctor = GetSelectedDoctor();
+            PopulateDetails(selectedDoctor);
+            _ = LoadSelectedDoctorDetailAsync(selectedDoctor);
         }
 
         private async void btnDelete_Click(object sender, EventArgs e)
@@ -467,8 +605,166 @@ namespace HospitalManagementSystem.UserControls
                 return;
             }
 
-            PopulateDetails(GetSelectedDoctor());
+            var selectedDoctor = GetSelectedDoctor();
+            PopulateDetails(selectedDoctor);
+            _ = LoadSelectedDoctorDetailAsync(selectedDoctor);
             UpdateActionButtons();
+        }
+
+        private async Task LoadSelectedDoctorDetailAsync(Doctor doctor)
+        {
+            if (doctor == null || doctor.UserID <= 0)
+            {
+                _selectedDoctorDetail = null;
+                SetDoctorImage(null, markDirty: false);
+                return;
+            }
+
+            try
+            {
+                _selectedDoctorDetail = await _userService.GetUserDetailAsync(doctor.UserID).ConfigureAwait(true);
+                SetDoctorImage(_selectedDoctorDetail?.ProfileImage, markDirty: false);
+            }
+            catch
+            {
+                _selectedDoctorDetail = null;
+                SetDoctorImage(null, markDirty: false);
+            }
+        }
+
+        private async Task SaveDoctorImageAsync(int userId, string doctorName)
+        {
+            if (!_doctorImageDirty || userId <= 0)
+            {
+                return;
+            }
+
+            var detail = _selectedDoctorDetail;
+            if (detail == null || detail.UserID != userId)
+            {
+                detail = await _userService.GetUserDetailAsync(userId).ConfigureAwait(true);
+            }
+
+            if (detail == null)
+            {
+                var names = BuildFallbackName(doctorName);
+                detail = new UserDetail
+                {
+                    UserID = userId,
+                    FirstName = names.Item1,
+                    LastName = names.Item2,
+                    ProfileImage = CloneBytes(_doctorProfileImageBytes)
+                };
+                await _userService.AddUserDetailAsync(detail).ConfigureAwait(true);
+                _selectedDoctorDetail = detail;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(detail.FirstName) || string.IsNullOrWhiteSpace(detail.LastName))
+                {
+                    var names = BuildFallbackName(doctorName);
+                    if (string.IsNullOrWhiteSpace(detail.FirstName))
+                    {
+                        detail.FirstName = names.Item1;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(detail.LastName))
+                    {
+                        detail.LastName = names.Item2;
+                    }
+                }
+
+                detail.ProfileImage = CloneBytes(_doctorProfileImageBytes);
+                await _userService.UpdateUserDetailAsync(detail).ConfigureAwait(true);
+                _selectedDoctorDetail = detail;
+            }
+
+            _doctorImageDirty = false;
+        }
+
+        private static Tuple<string, string> BuildFallbackName(string doctorName)
+        {
+            var cleaned = (doctorName ?? string.Empty).Trim().Replace('.', ' ').Replace('_', ' ');
+            if (string.IsNullOrWhiteSpace(cleaned))
+            {
+                return Tuple.Create("Doctor", "Profile");
+            }
+
+            var tokens = cleaned.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (tokens.Length == 1)
+            {
+                return Tuple.Create(tokens[0], "Profile");
+            }
+
+            return Tuple.Create(tokens[0], string.Join(" ", tokens.Skip(1)));
+        }
+
+        private void btnUploadPhoto_Click(object sender, EventArgs e)
+        {
+            if (_editorMode != DoctorEditorMode.EditExisting)
+            {
+                MessageBox.Show("Click Edit before uploading doctor image.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (var dialog = new OpenFileDialog())
+            {
+                dialog.Title = "Select Doctor Image";
+                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp";
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                try
+                {
+                    SetDoctorImage(File.ReadAllBytes(dialog.FileName), markDirty: true);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Unable to load image: {ex.Message}", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void SetDoctorImage(byte[] bytes, bool markDirty)
+        {
+            _doctorProfileImageBytes = CloneBytes(bytes);
+            _doctorImageDirty = markDirty;
+            if (_picProfileImage == null)
+            {
+                return;
+            }
+
+            var oldImage = _picProfileImage.Image;
+            _picProfileImage.Image = CreateImageFromBytes(_doctorProfileImageBytes);
+            oldImage?.Dispose();
+        }
+
+        private static Image CreateImageFromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
+            {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(bytes))
+            using (var image = Image.FromStream(stream))
+            {
+                return new Bitmap(image);
+            }
+        }
+
+        private static byte[] CloneBytes(byte[] source)
+        {
+            if (source == null || source.Length == 0)
+            {
+                return null;
+            }
+
+            var copy = new byte[source.Length];
+            Buffer.BlockCopy(source, 0, copy, 0, source.Length);
+            return copy;
         }
 
         private void ApplyTheme()
@@ -483,6 +779,20 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
             ThemeManager.StyleSearchTextBox(txtSearch, "Search doctor code / name / specialization");
+            if (_searchFilter != null)
+            {
+                ThemeManager.StyleComboBox(_searchFilter);
+            }
+
+            if (_btnUploadPhoto != null)
+            {
+                ThemeManager.StyleButton(_btnUploadPhoto, ThemeButtonKind.Secondary);
+            }
+
+            if (_picProfileImage != null)
+            {
+                _picProfileImage.BackColor = ThemeManager.Colors.SurfaceMuted;
+            }
         }
     }
 }

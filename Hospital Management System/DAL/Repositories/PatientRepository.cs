@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using HospitalManagementSystem.DAL.DTOs;
 using HospitalManagementSystem.Models;
+using MySql.Data.MySqlClient;
 
 namespace HospitalManagementSystem.DAL.Repositories
 {
@@ -14,6 +15,9 @@ namespace HospitalManagementSystem.DAL.Repositories
     /// </summary>
     public sealed class PatientRepository : RepositoryBase
     {
+        private static readonly object ProfileImageSchemaLock = new object();
+        private static bool _patientProfileImageSchemaChecked;
+
         /// <summary>
         /// Gets all patients.
         /// </summary>
@@ -85,14 +89,20 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
-                const string sql = @"INSERT INTO Patients
-                                    (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, MaritalStatus,
-                                     Nationality, IdentificationType, IdentificationNumber, RegistrationDate, IsActive)
-                                    VALUES (@PatientCode, @FirstName, @LastName, @DateOfBirth, @Gender, @BloodGroup, @MaritalStatus,
-                                            @Nationality, @IdentificationType, @IdentificationNumber, @RegistrationDate, @IsActive);
-                                    SELECT LAST_INSERT_ID();";
+                if (patient == null)
+                {
+                    throw new ArgumentNullException(nameof(patient));
+                }
+
                 using (var connection = Db.OpenConnection())
                 {
+                    EnsurePatientProfileImageColumn(connection);
+                    const string sql = @"INSERT INTO Patients
+                                        (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, MaritalStatus,
+                                         Nationality, IdentificationType, IdentificationNumber, RegistrationDate, IsActive, ProfileImage)
+                                        VALUES (@PatientCode, @FirstName, @LastName, @DateOfBirth, @Gender, @BloodGroup, @MaritalStatus,
+                                                @Nationality, @IdentificationType, @IdentificationNumber, @RegistrationDate, @IsActive, @ProfileImage);
+                                        SELECT LAST_INSERT_ID();";
                     return connection.ExecuteScalar<int>(sql, patient);
                 }
             }, "AddPatient");
@@ -106,14 +116,20 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
-                const string sql = @"INSERT INTO Patients
-                                    (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, MaritalStatus,
-                                     Nationality, IdentificationType, IdentificationNumber, RegistrationDate, IsActive)
-                                    VALUES (@PatientCode, @FirstName, @LastName, @DateOfBirth, @Gender, @BloodGroup, @MaritalStatus,
-                                            @Nationality, @IdentificationType, @IdentificationNumber, @RegistrationDate, @IsActive);
-                                    SELECT LAST_INSERT_ID();";
+                if (patient == null)
+                {
+                    throw new ArgumentNullException(nameof(patient));
+                }
+
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
+                    await EnsurePatientProfileImageColumnAsync(connection).ConfigureAwait(false);
+                    const string sql = @"INSERT INTO Patients
+                                        (PatientCode, FirstName, LastName, DateOfBirth, Gender, BloodGroup, MaritalStatus,
+                                         Nationality, IdentificationType, IdentificationNumber, RegistrationDate, IsActive, ProfileImage)
+                                        VALUES (@PatientCode, @FirstName, @LastName, @DateOfBirth, @Gender, @BloodGroup, @MaritalStatus,
+                                                @Nationality, @IdentificationType, @IdentificationNumber, @RegistrationDate, @IsActive, @ProfileImage);
+                                        SELECT LAST_INSERT_ID();";
                     return await connection.ExecuteScalarAsync<int>(sql, patient).ConfigureAwait(false);
                 }
             }, "AddPatientAsync");
@@ -127,22 +143,29 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
-                const string sql = @"UPDATE Patients SET
-                                    PatientCode = @PatientCode,
-                                    FirstName = @FirstName,
-                                    LastName = @LastName,
-                                    DateOfBirth = @DateOfBirth,
-                                    Gender = @Gender,
-                                    BloodGroup = @BloodGroup,
-                                    MaritalStatus = @MaritalStatus,
-                                    Nationality = @Nationality,
-                                    IdentificationType = @IdentificationType,
-                                    IdentificationNumber = @IdentificationNumber,
-                                    RegistrationDate = @RegistrationDate,
-                                    IsActive = @IsActive
-                                    WHERE PatientID = @PatientID";
+                if (patient == null)
+                {
+                    throw new ArgumentNullException(nameof(patient));
+                }
+
                 using (var connection = Db.OpenConnection())
                 {
+                    EnsurePatientProfileImageColumn(connection);
+                    const string sql = @"UPDATE Patients SET
+                                        PatientCode = @PatientCode,
+                                        FirstName = @FirstName,
+                                        LastName = @LastName,
+                                        DateOfBirth = @DateOfBirth,
+                                        Gender = @Gender,
+                                        BloodGroup = @BloodGroup,
+                                        MaritalStatus = @MaritalStatus,
+                                        Nationality = @Nationality,
+                                        IdentificationType = @IdentificationType,
+                                        IdentificationNumber = @IdentificationNumber,
+                                        RegistrationDate = @RegistrationDate,
+                                        IsActive = @IsActive,
+                                        ProfileImage = @ProfileImage
+                                        WHERE PatientID = @PatientID";
                     return connection.Execute(sql, patient) > 0;
                 }
             }, "UpdatePatient");
@@ -156,22 +179,29 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
-                const string sql = @"UPDATE Patients SET
-                                    PatientCode = @PatientCode,
-                                    FirstName = @FirstName,
-                                    LastName = @LastName,
-                                    DateOfBirth = @DateOfBirth,
-                                    Gender = @Gender,
-                                    BloodGroup = @BloodGroup,
-                                    MaritalStatus = @MaritalStatus,
-                                    Nationality = @Nationality,
-                                    IdentificationType = @IdentificationType,
-                                    IdentificationNumber = @IdentificationNumber,
-                                    RegistrationDate = @RegistrationDate,
-                                    IsActive = @IsActive
-                                    WHERE PatientID = @PatientID";
+                if (patient == null)
+                {
+                    throw new ArgumentNullException(nameof(patient));
+                }
+
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
+                    await EnsurePatientProfileImageColumnAsync(connection).ConfigureAwait(false);
+                    const string sql = @"UPDATE Patients SET
+                                        PatientCode = @PatientCode,
+                                        FirstName = @FirstName,
+                                        LastName = @LastName,
+                                        DateOfBirth = @DateOfBirth,
+                                        Gender = @Gender,
+                                        BloodGroup = @BloodGroup,
+                                        MaritalStatus = @MaritalStatus,
+                                        Nationality = @Nationality,
+                                        IdentificationType = @IdentificationType,
+                                        IdentificationNumber = @IdentificationNumber,
+                                        RegistrationDate = @RegistrationDate,
+                                        IsActive = @IsActive,
+                                        ProfileImage = @ProfileImage
+                                        WHERE PatientID = @PatientID";
                     return await connection.ExecuteAsync(sql, patient).ConfigureAwait(false) > 0;
                 }
             }, "UpdatePatientAsync");
@@ -207,6 +237,70 @@ namespace HospitalManagementSystem.DAL.Repositories
                     return await connection.ExecuteAsync(sql, new { PatientID = patientId }).ConfigureAwait(false) > 0;
                 }
             }, "DeletePatientAsync");
+        }
+
+        private static void EnsurePatientProfileImageColumn(MySqlConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            lock (ProfileImageSchemaLock)
+            {
+                if (_patientProfileImageSchemaChecked)
+                {
+                    return;
+                }
+            }
+
+            const string checkSql = @"SELECT COUNT(*)
+                                      FROM information_schema.columns
+                                      WHERE table_schema = DATABASE()
+                                        AND LOWER(table_name) = 'patients'
+                                        AND LOWER(column_name) = 'profileimage';";
+            var hasColumn = connection.ExecuteScalar<int>(checkSql) > 0;
+            if (!hasColumn)
+            {
+                connection.Execute("ALTER TABLE Patients ADD COLUMN ProfileImage LONGBLOB NULL;");
+            }
+
+            lock (ProfileImageSchemaLock)
+            {
+                _patientProfileImageSchemaChecked = true;
+            }
+        }
+
+        private static async Task EnsurePatientProfileImageColumnAsync(MySqlConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            lock (ProfileImageSchemaLock)
+            {
+                if (_patientProfileImageSchemaChecked)
+                {
+                    return;
+                }
+            }
+
+            const string checkSql = @"SELECT COUNT(*)
+                                      FROM information_schema.columns
+                                      WHERE table_schema = DATABASE()
+                                        AND LOWER(table_name) = 'patients'
+                                        AND LOWER(column_name) = 'profileimage';";
+            var hasColumn = await connection.ExecuteScalarAsync<int>(checkSql).ConfigureAwait(false) > 0;
+            if (!hasColumn)
+            {
+                await connection.ExecuteAsync("ALTER TABLE Patients ADD COLUMN ProfileImage LONGBLOB NULL;").ConfigureAwait(false);
+            }
+
+            lock (ProfileImageSchemaLock)
+            {
+                _patientProfileImageSchemaChecked = true;
+            }
         }
 
         /// <summary>

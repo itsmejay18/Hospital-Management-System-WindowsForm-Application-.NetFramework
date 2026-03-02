@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,6 +19,7 @@ namespace HospitalManagementSystem.UserControls
 
         private AppointmentEditorMode _editorMode = AppointmentEditorMode.View;
         private int? _editingAppointmentId;
+        private ComboBox _searchFilter;
 
         private enum AppointmentEditorMode
         {
@@ -25,11 +27,23 @@ namespace HospitalManagementSystem.UserControls
             EditExisting = 1
         }
 
+        private enum AppointmentSearchFilter
+        {
+            All = 0,
+            Code = 1,
+            Patient = 2,
+            Doctor = 3,
+            Status = 4,
+            Type = 5,
+            Date = 6
+        }
+
         public ucAppointments()
         {
             InitializeComponent();
             ConfigureGrid();
             ConfigureDetailInputs();
+            ConfigureSearchFilter();
             HookEvents();
             ApplyTheme();
             SetEditorMode(AppointmentEditorMode.View);
@@ -69,6 +83,29 @@ namespace HospitalManagementSystem.UserControls
                 "Cancelled",
                 "No-show"
             });
+        }
+
+        private void ConfigureSearchFilter()
+        {
+            _searchFilter = new ComboBox
+            {
+                Name = "cboSearchFilter",
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(608, 12),
+                Size = new Size(168, 23)
+            };
+            _searchFilter.Items.AddRange(new object[]
+            {
+                "All Fields",
+                "Appointment Code",
+                "Patient Name",
+                "Doctor Name",
+                "Status",
+                "Appointment Type",
+                "Date (yyyy-mm-dd)"
+            });
+            _searchFilter.SelectedIndex = 0;
+            pnlSearch.Controls.Add(_searchFilter);
         }
 
         private void HookEvents()
@@ -116,12 +153,7 @@ namespace HospitalManagementSystem.UserControls
             var term = (searchTerm ?? string.Empty).Trim();
             var filtered = string.IsNullOrWhiteSpace(term)
                 ? _allAppointments
-                : _allAppointments.Where(x =>
-                    ContainsInsensitive(x.AppointmentCode, term)
-                    || ContainsInsensitive(x.PatientName, term)
-                    || ContainsInsensitive(x.DoctorName, term)
-                    || ContainsInsensitive(x.Status, term)
-                    || ContainsInsensitive(x.AppointmentType, term)).ToList();
+                : _allAppointments.Where(appointment => MatchesSearch(appointment, term)).ToList();
 
             _appointments.RaiseListChangedEvents = false;
             _appointments.Clear();
@@ -134,6 +166,43 @@ namespace HospitalManagementSystem.UserControls
             _appointments.ResetBindings();
 
             RestoreSelection(preferredAppointmentId);
+        }
+
+        private bool MatchesSearch(Appointment appointment, string term)
+        {
+            switch (GetSelectedSearchFilter())
+            {
+                case AppointmentSearchFilter.Code:
+                    return ContainsInsensitive(appointment?.AppointmentCode, term);
+                case AppointmentSearchFilter.Patient:
+                    return ContainsInsensitive(appointment?.PatientName, term);
+                case AppointmentSearchFilter.Doctor:
+                    return ContainsInsensitive(appointment?.DoctorName, term);
+                case AppointmentSearchFilter.Status:
+                    return ContainsInsensitive(appointment?.Status, term);
+                case AppointmentSearchFilter.Type:
+                    return ContainsInsensitive(appointment?.AppointmentType, term);
+                case AppointmentSearchFilter.Date:
+                    return appointment != null && appointment.AppointmentDate.ToString("yyyy-MM-dd").IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+                case AppointmentSearchFilter.All:
+                default:
+                    return ContainsInsensitive(appointment?.AppointmentCode, term)
+                           || ContainsInsensitive(appointment?.PatientName, term)
+                           || ContainsInsensitive(appointment?.DoctorName, term)
+                           || ContainsInsensitive(appointment?.Status, term)
+                           || ContainsInsensitive(appointment?.AppointmentType, term)
+                           || (appointment != null && appointment.AppointmentDate.ToString("yyyy-MM-dd").IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+        }
+
+        private AppointmentSearchFilter GetSelectedSearchFilter()
+        {
+            if (_searchFilter == null || _searchFilter.SelectedIndex < 0)
+            {
+                return AppointmentSearchFilter.All;
+            }
+
+            return (AppointmentSearchFilter)_searchFilter.SelectedIndex;
         }
 
         private static bool ContainsInsensitive(string value, string searchText)
@@ -285,6 +354,10 @@ namespace HospitalManagementSystem.UserControls
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             txtSearch.Clear();
+            if (_searchFilter != null)
+            {
+                _searchFilter.SelectedIndex = 0;
+            }
             await ReloadAsync().ConfigureAwait(true);
         }
 
@@ -469,6 +542,10 @@ namespace HospitalManagementSystem.UserControls
             ThemeManager.StyleButton(btnSearch, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnRefresh, ThemeButtonKind.Secondary);
             ThemeManager.StyleSearchTextBox(txtSearch, "Search appointment / patient / doctor");
+            if (_searchFilter != null)
+            {
+                ThemeManager.StyleComboBox(_searchFilter);
+            }
         }
     }
 }

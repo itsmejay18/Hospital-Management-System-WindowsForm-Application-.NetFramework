@@ -9,6 +9,7 @@ namespace HospitalManagementSystem.Forms
     public partial class frmMain : Form
     {
         private readonly AuthenticatedUser _currentUser;
+        public bool LogoutRequested { get; private set; }
 
         public frmMain(AuthenticatedUser currentUser)
         {
@@ -159,13 +160,8 @@ namespace HospitalManagementSystem.Forms
                 return;
             }
 
+            LogoutRequested = true;
             UserSession.End();
-            Hide();
-            using (var login = new frmLogin())
-            {
-                login.ShowDialog();
-            }
-
             Close();
         }
 

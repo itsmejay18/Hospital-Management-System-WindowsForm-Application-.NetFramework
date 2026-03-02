@@ -83,7 +83,7 @@ namespace HospitalManagementSystem.BLL.Services
         /// </summary>
         public Task<bool> DeleteAsync(int appointmentId)
         {
-            AuthorizationHelper.EnsureRole("Administrator", "Receptionist");
+            AuthorizationHelper.EnsureRole("Administrator", "Receptionist", "Doctor", "Nurse");
             return _repository.DeleteAppointmentAsync(appointmentId);
         }
     }

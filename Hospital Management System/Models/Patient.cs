@@ -23,6 +23,7 @@ namespace HospitalManagementSystem.Models
         private string _identificationNumber;
         private DateTime? _registrationDate;
         private bool _isActive;
+        private byte[] _profileImage;
 
         /// <summary>
         /// Gets or sets the patient identifier.
@@ -154,6 +155,15 @@ namespace HospitalManagementSystem.Models
         {
             get => _isActive;
             set => SetProperty(ref _isActive, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the patient profile image binary.
+        /// </summary>
+        public byte[] ProfileImage
+        {
+            get => _profileImage;
+            set => SetProperty(ref _profileImage, value);
         }
 
         /// <summary>

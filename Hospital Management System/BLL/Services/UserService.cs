@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HospitalManagementSystem.DAL.Repositories;
 using HospitalManagementSystem.Helpers;
@@ -33,8 +34,13 @@ namespace HospitalManagementSystem.BLL.Services
                 return await GetAllAsync().ConfigureAwait(false);
             }
 
-            var result = await _repository.SearchUsersAsync(query, query, null, null, 1, 200).ConfigureAwait(false);
-            return new List<User>(result.Items);
+            var term = query.Trim();
+            var users = await GetAllAsync().ConfigureAwait(false);
+            return users
+                .Where(user =>
+                    ContainsInsensitive(user.Username, term)
+                    || ContainsInsensitive(user.Email, term))
+                .ToList();
         }
 
         /// <summary>
@@ -90,6 +96,27 @@ namespace HospitalManagementSystem.BLL.Services
         public Task<List<UserRole>> GetRolesAsync()
         {
             return _repository.GetAllRolesAsync();
+        }
+
+        public Task<UserDetail> GetUserDetailAsync(int userId)
+        {
+            return _repository.GetUserDetailByUserIdAsync(userId);
+        }
+
+        public Task<int> AddUserDetailAsync(UserDetail detail)
+        {
+            return _repository.AddUserDetailAsync(detail);
+        }
+
+        public Task<bool> UpdateUserDetailAsync(UserDetail detail)
+        {
+            return _repository.UpdateUserDetailAsync(detail);
+        }
+
+        private static bool ContainsInsensitive(string value, string searchText)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                   && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

@@ -8,15 +8,12 @@ namespace HospitalManagementSystem.UserControls
 {
     public partial class ucHeader : UserControl
     {
-        private TextBox txtSearch;
         private Button btnQuickAdd;
         private Button btnNotify;
         private Button btnProfileMenu;
-        private PictureBox picSearchIcon;
         private PictureBox picAvatar;
         private Panel pnlDivider;
         private Panel pnlNotifyDot;
-        private bool _searchHintActive;
         private bool _dashboardMode;
 
         public ucHeader()
@@ -54,14 +51,6 @@ namespace HospitalManagementSystem.UserControls
 
         private void BuildActions()
         {
-            txtSearch = new TextBox
-            {
-                Name = "txtSearch",
-                Width = 300,
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                BorderStyle = BorderStyle.None
-            };
-
             btnQuickAdd = new Button
             {
                 Name = "btnQuickAdd",
@@ -94,15 +83,6 @@ namespace HospitalManagementSystem.UserControls
                 TabStop = false
             };
 
-            picSearchIcon = new PictureBox
-            {
-                Name = "picSearchIcon",
-                Size = new Size(18, 18),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left,
-                SizeMode = PictureBoxSizeMode.CenterImage,
-                Image = CreateActionIcon(ActionIconType.Search)
-            };
-
             picAvatar = new PictureBox
             {
                 Name = "picAvatar",
@@ -126,8 +106,6 @@ namespace HospitalManagementSystem.UserControls
                 Anchor = AnchorStyles.Top | AnchorStyles.Right
             };
 
-            Controls.Add(picSearchIcon);
-            Controls.Add(txtSearch);
             Controls.Add(btnQuickAdd);
             Controls.Add(pnlDivider);
             Controls.Add(btnNotify);
@@ -135,22 +113,18 @@ namespace HospitalManagementSystem.UserControls
             Controls.Add(picAvatar);
             Controls.Add(btnProfileMenu);
 
-            txtSearch.Enter += txtSearch_Enter;
-            txtSearch.Leave += txtSearch_Leave;
             btnQuickAdd.Click += (_, __) => QuickAddPatientClicked?.Invoke(this, EventArgs.Empty);
             Resize += (_, __) => ArrangeLayout();
         }
 
         private void ArrangeLayout()
         {
-            if (txtSearch == null || btnQuickAdd == null || btnNotify == null || picAvatar == null)
+            if (btnQuickAdd == null || btnNotify == null || picAvatar == null || btnProfileMenu == null)
             {
                 return;
             }
 
             var showDashboardActions = !_dashboardMode;
-            txtSearch.Visible = showDashboardActions;
-            picSearchIcon.Visible = showDashboardActions;
             btnQuickAdd.Visible = showDashboardActions;
             pnlDivider.Visible = showDashboardActions;
             btnNotify.Visible = showDashboardActions;
@@ -172,24 +146,14 @@ namespace HospitalManagementSystem.UserControls
                 return;
             }
 
-            var searchX = _dashboardMode ? 20 : lblTitle.Right + 18;
-            var rightReserved = 20 + 34 + 10 + 34 + 10 + 1 + 10 + 126;
-            var searchWidth = _dashboardMode
-                ? Math.Max(260, Width - searchX - rightReserved - 20)
-                : Math.Min(360, Math.Max(220, Width / 3));
-
-            picSearchIcon.Location = new Point(searchX + 12, 34);
-            txtSearch.Location = new Point(searchX + 34, 31);
-            txtSearch.Size = new Size(searchWidth - 42, 22);
+            btnProfileMenu.Size = new Size(20, 34);
+            btnProfileMenu.Location = new Point(Math.Max(Width - 24 - btnProfileMenu.Width, 220), 26);
 
             picAvatar.Size = new Size(34, 34);
-            picAvatar.Location = new Point(Math.Max(Width - 44 - picAvatar.Width, searchX + searchWidth + 8), 26);
-
-            btnProfileMenu.Location = new Point(picAvatar.Right + 4, 26);
-            btnProfileMenu.Size = new Size(20, 34);
+            picAvatar.Location = new Point(Math.Max(btnProfileMenu.Left - 4 - picAvatar.Width, 184), 26);
 
             btnNotify.Size = new Size(34, 34);
-            btnNotify.Location = new Point(picAvatar.Left - btnNotify.Width - 10, 26);
+            btnNotify.Location = new Point(Math.Max(picAvatar.Left - btnNotify.Width - 10, lblTitle.Right + 12), 26);
             pnlNotifyDot.Location = new Point(btnNotify.Right - 9, btnNotify.Top + 4);
 
             pnlDivider.Location = new Point(btnNotify.Left - pnlDivider.Width - 10, 29);
@@ -208,41 +172,11 @@ namespace HospitalManagementSystem.UserControls
             }
         }
 
-        private void SetSearchHint()
-        {
-            _searchHintActive = true;
-            txtSearch.Text = "Search here...";
-            txtSearch.ForeColor = ThemeManager.Colors.TextSecondary;
-        }
-
-        private void txtSearch_Enter(object sender, EventArgs e)
-        {
-            if (!_searchHintActive)
-            {
-                return;
-            }
-
-            _searchHintActive = false;
-            txtSearch.Text = string.Empty;
-            txtSearch.ForeColor = ThemeManager.Colors.TextPrimary;
-        }
-
-        private void txtSearch_Leave(object sender, EventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(txtSearch.Text))
-            {
-                return;
-            }
-
-            SetSearchHint();
-        }
-
         private void ApplyTheme()
         {
             ThemeManager.StyleHeaderBar(this, lblTitle, lblUser, btnLogout);
             btnLogout.Visible = false;
 
-            ThemeManager.StyleTextBox(txtSearch);
             ThemeManager.StyleButton(btnQuickAdd, ThemeButtonKind.Primary);
             ThemeManager.StyleButton(btnNotify, ThemeButtonKind.Secondary);
             btnNotify.FlatAppearance.BorderColor = ThemeManager.Colors.Border;
@@ -258,17 +192,14 @@ namespace HospitalManagementSystem.UserControls
             btnProfileMenu.ForeColor = ThemeManager.Colors.TextSecondary;
             pnlDivider.BackColor = ThemeManager.Colors.Border;
             pnlNotifyDot.BackColor = ColorTranslator.FromHtml("#FF5A73");
-            picSearchIcon.BackColor = ThemeManager.Colors.Surface;
 
             ThemeManager.ApplyBrandingLogo(picAvatar);
-            SetSearchHint();
             ArrangeLayout();
         }
 
         private enum ActionIconType
         {
-            Search = 0,
-            Notification = 1
+            Notification = 0
         }
 
         private static Bitmap CreateActionIcon(ActionIconType type)
@@ -283,17 +214,9 @@ namespace HospitalManagementSystem.UserControls
                 pen.EndCap = LineCap.Round;
                 pen.LineJoin = LineJoin.Round;
 
-                if (type == ActionIconType.Search)
-                {
-                    graphics.DrawEllipse(pen, 2.5F, 2.5F, 9F, 9F);
-                    graphics.DrawLine(pen, 10, 10, 15, 15);
-                }
-                else
-                {
-                    graphics.DrawArc(pen, 4, 4, 10, 9, 200, 140);
-                    graphics.DrawLine(pen, 7, 12, 11, 12);
-                    graphics.DrawLine(pen, 9, 12, 9, 14);
-                }
+                graphics.DrawArc(pen, 4, 4, 10, 9, 200, 140);
+                graphics.DrawLine(pen, 7, 12, 11, 12);
+                graphics.DrawLine(pen, 9, 12, 9, 14);
             }
 
             return icon;
