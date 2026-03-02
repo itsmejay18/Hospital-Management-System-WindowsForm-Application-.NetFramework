@@ -790,7 +790,40 @@ namespace HospitalManagementSystem.Helpers
 
             pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox.BackColor = Color.Transparent;
-            pictureBox.Image = GetBrandingLogo();
+
+            var logo = GetBrandingLogo();
+            if (logo == null)
+            {
+                return;
+            }
+
+            Image logoCopy;
+            try
+            {
+                logoCopy = (Image)logo.Clone();
+            }
+            catch
+            {
+                // Recover from a stale/disposed cache instance.
+                BrandingLogoCache = null;
+                BrandingLogoLoadAttempted = false;
+                logo = GetBrandingLogo();
+                if (logo == null)
+                {
+                    return;
+                }
+
+                logoCopy = (Image)logo.Clone();
+            }
+
+            var previousImage = pictureBox.Image;
+            pictureBox.Image = logoCopy;
+            if (previousImage != null
+                && !ReferenceEquals(previousImage, logo)
+                && !ReferenceEquals(previousImage, logoCopy))
+            {
+                previousImage.Dispose();
+            }
         }
 
         /// <summary>
