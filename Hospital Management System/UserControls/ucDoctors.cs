@@ -703,8 +703,16 @@ namespace HospitalManagementSystem.UserControls
         {
             if (_editorMode != DoctorEditorMode.EditExisting)
             {
-                MessageBox.Show("Click Edit before uploading doctor image.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                var selected = GetSelectedDoctor();
+                if (selected == null)
+                {
+                    MessageBox.Show("Select a doctor first.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                _editingDoctorId = selected.DoctorID;
+                PopulateDetails(selected);
+                SetEditorMode(DoctorEditorMode.EditExisting);
             }
 
             using (var dialog = new OpenFileDialog())

@@ -629,8 +629,16 @@ namespace HospitalManagementSystem.UserControls
         {
             if (_editorMode == PatientEditorMode.View)
             {
-                MessageBox.Show("Click Add or Edit to upload an image.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                var selected = GetSelectedPatient();
+                if (selected == null)
+                {
+                    MessageBox.Show("Select a patient first, or click Add New.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                _editingPatientId = selected.PatientID;
+                PopulateDetails(selected);
+                SetEditorMode(PatientEditorMode.EditExisting);
             }
 
             using (var dialog = new OpenFileDialog())

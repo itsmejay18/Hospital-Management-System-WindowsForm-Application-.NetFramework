@@ -1,15 +1,20 @@
 using System;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Helpers;
+using HospitalManagementSystem.Models;
 
 namespace HospitalManagementSystem.UserControls
 {
     public sealed class ucProfile : UserControl
     {
         private readonly AuthenticatedUser _user;
+        private readonly UserService _userService = new UserService();
         private SplitContainer _profileSplit;
         private const int PreferredLeftPaneWidth = 320;
 
@@ -23,6 +28,9 @@ namespace HospitalManagementSystem.UserControls
         private TextBox _txtRole;
         private Button _btnUploadPhoto;
         private Button _btnSaveProfile;
+        private UserDetail _userDetail;
+        private byte[] _profileImageBytes;
+        private bool _profileImageDirty;
 
         public ucProfile(AuthenticatedUser user)
         {
@@ -30,6 +38,11 @@ namespace HospitalManagementSystem.UserControls
             BuildLayout();
             ApplyTheme();
             BindProfile();
+            Load += async (_, __) =>
+            {
+                ApplyProfileSplitDistance();
+                await LoadProfileFromDatabaseAsync().ConfigureAwait(true);
+            };
         }
 
         private void BuildLayout()
@@ -98,7 +111,6 @@ namespace HospitalManagementSystem.UserControls
             root.Controls.Add(pnlHeader, 0, 0);
             root.Controls.Add(_profileSplit, 0, 1);
             Controls.Add(root);
-            Load += (_, __) => ApplyProfileSplitDistance();
         }
 
         private Control BuildProfileCard()
@@ -270,7 +282,7 @@ namespace HospitalManagementSystem.UserControls
             _txtEmail.Text = $"{username}@hospital.local";
             _txtPhone.Text = "+63 9XX XXX XXXX";
             _txtRole.Text = role;
-            ThemeManager.ApplyBrandingLogo(_picProfile);
+            SetProfileImage(null, markDirty: false, fallbackToBranding: true);
         }
 
         private static string BuildDisplayName(string username)
@@ -289,12 +301,48 @@ namespace HospitalManagementSystem.UserControls
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(cleaned);
         }
 
+        private async Task LoadProfileFromDatabaseAsync()
+        {
+            if (_user.UserID <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _userDetail = await _userService.GetUserDetailAsync(_user.UserID).ConfigureAwait(true);
+                if (_userDetail == null)
+                {
+                    SetProfileImage(null, markDirty: false, fallbackToBranding: true);
+                    return;
+                }
+
+                var fullName = $"{_userDetail.FirstName} {_userDetail.LastName}".Trim();
+                if (!string.IsNullOrWhiteSpace(fullName))
+                {
+                    _txtFullName.Text = fullName;
+                    _lblCardName.Text = fullName;
+                }
+
+                if (!string.IsNullOrWhiteSpace(_userDetail.ContactNumber))
+                {
+                    _txtPhone.Text = _userDetail.ContactNumber;
+                }
+
+                SetProfileImage(_userDetail.ProfileImage, markDirty: false, fallbackToBranding: true);
+            }
+            catch
+            {
+                SetProfileImage(null, markDirty: false, fallbackToBranding: true);
+            }
+        }
+
         private void btnUploadPhoto_Click(object sender, EventArgs e)
         {
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Title = "Select Profile Photo";
-                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp";
+                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp";
                 if (dialog.ShowDialog() != DialogResult.OK)
                 {
                     return;
@@ -302,12 +350,16 @@ namespace HospitalManagementSystem.UserControls
 
                 try
                 {
-                    using (var image = Image.FromFile(dialog.FileName))
+                    var bytes = File.ReadAllBytes(dialog.FileName);
+                    using (var image = CreateImageFromBytes(bytes))
                     {
-                        var old = _picProfile.Image;
-                        _picProfile.Image = new Bitmap(image);
-                        old?.Dispose();
+                        if (image == null)
+                        {
+                            throw new InvalidOperationException("Unsupported or invalid image file.");
+                        }
                     }
+
+                    SetProfileImage(bytes, markDirty: true, fallbackToBranding: true);
                 }
                 catch (Exception ex)
                 {
@@ -316,12 +368,120 @@ namespace HospitalManagementSystem.UserControls
             }
         }
 
-        private void btnSaveProfile_Click(object sender, EventArgs e)
+        private async void btnSaveProfile_Click(object sender, EventArgs e)
         {
             _lblCardName.Text = string.IsNullOrWhiteSpace(_txtFullName.Text) ? _lblCardName.Text : _txtFullName.Text.Trim();
             _txtRole.Text = string.IsNullOrWhiteSpace(_txtRole.Text) ? _lblCardRole.Text : _txtRole.Text.Trim();
             _lblCardRole.Text = _txtRole.Text;
-            MessageBox.Show("Profile details updated successfully.", "Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            if (_user.UserID <= 0)
+            {
+                MessageBox.Show("Unable to save profile for the current user.", "Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var names = ParseFullName(_txtFullName.Text);
+                var detail = _userDetail ?? await _userService.GetUserDetailAsync(_user.UserID).ConfigureAwait(true);
+                if (detail == null)
+                {
+                    detail = new UserDetail
+                    {
+                        UserID = _user.UserID,
+                        FirstName = names.Item1,
+                        LastName = names.Item2,
+                        ContactNumber = _txtPhone.Text.Trim(),
+                        ProfileImage = CloneBytes(_profileImageBytes)
+                    };
+
+                    await _userService.AddUserDetailAsync(detail).ConfigureAwait(true);
+                    _userDetail = detail;
+                }
+                else
+                {
+                    detail.FirstName = names.Item1;
+                    detail.LastName = names.Item2;
+                    detail.ContactNumber = _txtPhone.Text.Trim();
+                    if (_profileImageDirty)
+                    {
+                        detail.ProfileImage = CloneBytes(_profileImageBytes);
+                    }
+
+                    await _userService.UpdateUserDetailAsync(detail).ConfigureAwait(true);
+                    _userDetail = detail;
+                }
+
+                _profileImageDirty = false;
+                MessageBox.Show("Profile details updated successfully.", "Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to save profile: {ex.Message}", "Profile", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SetProfileImage(byte[] bytes, bool markDirty, bool fallbackToBranding)
+        {
+            _profileImageBytes = CloneBytes(bytes);
+            _profileImageDirty = markDirty;
+
+            if (_picProfile == null)
+            {
+                return;
+            }
+
+            var oldImage = _picProfile.Image;
+            _picProfile.Image = CreateImageFromBytes(_profileImageBytes);
+            oldImage?.Dispose();
+
+            if (_picProfile.Image == null && fallbackToBranding)
+            {
+                ThemeManager.ApplyBrandingLogo(_picProfile);
+            }
+        }
+
+        private static Image CreateImageFromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
+            {
+                return null;
+            }
+
+            using (var stream = new MemoryStream(bytes))
+            using (var image = Image.FromStream(stream))
+            {
+                return new Bitmap(image);
+            }
+        }
+
+        private static Tuple<string, string> ParseFullName(string fullName)
+        {
+            var cleaned = (fullName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(cleaned))
+            {
+                return Tuple.Create("Hospital", "User");
+            }
+
+            var tokens = cleaned.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (tokens.Length == 1)
+            {
+                return Tuple.Create(tokens[0], "User");
+            }
+
+            return Tuple.Create(tokens[0], string.Join(" ", tokens.Skip(1)));
+        }
+
+        private static byte[] CloneBytes(byte[] source)
+        {
+            if (source == null || source.Length == 0)
+            {
+                return null;
+            }
+
+            var copy = new byte[source.Length];
+            Buffer.BlockCopy(source, 0, copy, 0, source.Length);
+            return copy;
         }
 
         private void ApplyTheme()
