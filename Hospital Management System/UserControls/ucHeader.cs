@@ -1,13 +1,17 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using HospitalManagementSystem.BLL.Services;
 using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem.UserControls
 {
     public partial class ucHeader : UserControl
     {
+        private readonly UserService _userService = new UserService();
         private Button btnQuickAdd;
         private Button btnNotify;
         private Button btnProfileMenu;
@@ -32,9 +36,10 @@ namespace HospitalManagementSystem.UserControls
             ArrangeLayout();
         }
 
-        public void SetUser(string username, string roleName)
+        public async void SetUser(int userId, string username, string roleName)
         {
             lblUser.Text = $"User: {username} ({roleName})";
+            await LoadAvatarAsync(userId).ConfigureAwait(true);
             ArrangeLayout();
         }
 
@@ -124,33 +129,33 @@ namespace HospitalManagementSystem.UserControls
                 return;
             }
 
-            var showDashboardActions = !_dashboardMode;
-            btnQuickAdd.Visible = showDashboardActions;
-            pnlDivider.Visible = showDashboardActions;
-            btnNotify.Visible = showDashboardActions;
-            pnlNotifyDot.Visible = showDashboardActions;
-            picAvatar.Visible = showDashboardActions;
-            btnProfileMenu.Visible = showDashboardActions;
+            var showUtilityActions = !_dashboardMode;
+            btnQuickAdd.Visible = showUtilityActions;
+            pnlDivider.Visible = showUtilityActions;
+            btnNotify.Visible = showUtilityActions;
+            pnlNotifyDot.Visible = showUtilityActions;
+            picAvatar.Visible = true;
+            btnProfileMenu.Visible = true;
 
             lblTitle.Visible = true;
             lblUser.Visible = true;
             lblTitle.AutoSize = true;
             lblTitle.Location = new Point(20, 31);
 
-            if (_dashboardMode)
-            {
-                lblUser.AutoSize = false;
-                lblUser.TextAlign = ContentAlignment.MiddleRight;
-                lblUser.Size = new Size(300, 22);
-                lblUser.Location = new Point(Math.Max(Width - lblUser.Width - 24, 220), 31);
-                return;
-            }
-
             btnProfileMenu.Size = new Size(20, 34);
             btnProfileMenu.Location = new Point(Math.Max(Width - 24 - btnProfileMenu.Width, 220), 26);
 
             picAvatar.Size = new Size(34, 34);
             picAvatar.Location = new Point(Math.Max(btnProfileMenu.Left - 4 - picAvatar.Width, 184), 26);
+
+            if (_dashboardMode)
+            {
+                lblUser.AutoSize = false;
+                lblUser.TextAlign = ContentAlignment.MiddleRight;
+                lblUser.Size = new Size(300, 22);
+                lblUser.Location = new Point(Math.Max(picAvatar.Left - lblUser.Width - 12, 220), 31);
+                return;
+            }
 
             btnNotify.Size = new Size(34, 34);
             btnNotify.Location = new Point(Math.Max(picAvatar.Left - btnNotify.Width - 10, lblTitle.Right + 12), 26);
@@ -195,6 +200,40 @@ namespace HospitalManagementSystem.UserControls
 
             ThemeManager.ApplyBrandingLogo(picAvatar);
             ArrangeLayout();
+        }
+
+        private async Task LoadAvatarAsync(int userId)
+        {
+            if (picAvatar == null || userId <= 0)
+            {
+                ThemeManager.ApplyBrandingLogo(picAvatar);
+                return;
+            }
+
+            try
+            {
+                var detail = await _userService.GetUserDetailAsync(userId).ConfigureAwait(true);
+                if (detail?.ProfileImage == null || detail.ProfileImage.Length == 0)
+                {
+                    ThemeManager.ApplyBrandingLogo(picAvatar);
+                    return;
+                }
+
+                using (var stream = new MemoryStream(detail.ProfileImage))
+                using (var image = Image.FromStream(stream))
+                {
+                    var previousImage = picAvatar.Image;
+                    picAvatar.Image = new Bitmap(image);
+                    if (previousImage != null && !ReferenceEquals(previousImage, picAvatar.Image))
+                    {
+                        previousImage.Dispose();
+                    }
+                }
+            }
+            catch
+            {
+                ThemeManager.ApplyBrandingLogo(picAvatar);
+            }
         }
 
         private enum ActionIconType

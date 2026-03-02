@@ -38,7 +38,7 @@ namespace HospitalManagementSystem.Forms
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            ucHeader1.SetUser(_currentUser.Username, _currentUser.RoleName);
+            ucHeader1.SetUser(_currentUser.UserID, _currentUser.Username, _currentUser.RoleName);
             ucNavigation1.ConfigureForRole(_currentUser.RoleName);
             lblStatus.Text = $"Signed in as {_currentUser.Username} ({_currentUser.RoleName})";
             ShowDashboard();
