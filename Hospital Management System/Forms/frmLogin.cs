@@ -28,7 +28,7 @@ namespace HospitalManagementSystem.Forms
                 Text = companyName.Trim();
             }
 
-            lblTitle.Text = "Sign In";
+            lblTitle.Text = "Hospital Management System";
 
             lblStatus.Text = "Ready";
             AcceptButton = btnLogin;
