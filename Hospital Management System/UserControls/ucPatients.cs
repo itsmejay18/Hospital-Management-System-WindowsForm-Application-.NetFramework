@@ -19,9 +19,54 @@ namespace HospitalManagementSystem.UserControls
         private PatientEditorMode _editorMode = PatientEditorMode.View;
         private int? _editingPatientId;
         private ComboBox _searchFilter;
+        private ComboBox _cboNationality;
+        private ComboBox _cboIdType;
         private PictureBox _picProfileImage;
         private Button _btnUploadPhoto;
         private byte[] _patientPhotoBytes;
+
+        private static readonly string[] NationalityOptions =
+        {
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+            "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+            "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+            "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+            "Croatia", "Cuba", "Cyprus", "Czech Republic", "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador",
+            "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
+            "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau",
+            "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland",
+            "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+            "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
+            "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+            "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+            "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
+            "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+            "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
+            "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+            "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+            "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+            "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela",
+            "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        };
+
+        private static readonly string[] IdentificationTypeOptions =
+        {
+            "Driver's License",
+            "Voter's ID",
+            "School ID",
+            "PhilHealth ID",
+            "Passport",
+            "SSS ID",
+            "Postal ID",
+            "NBI Clearance",
+            "Senior Citizen ID",
+            "National ID",
+            "PRC ID",
+            "TIN ID",
+            "UMID",
+            "Company ID",
+            "Barangay ID"
+        };
 
         private enum PatientEditorMode
         {
@@ -146,6 +191,70 @@ namespace HospitalManagementSystem.UserControls
             cboGender.Items.Clear();
             cboGender.Items.AddRange(new object[] { "Male", "Female", "Other" });
             cboGender.SelectedIndex = -1;
+
+            InitializePatientDropdownEditors();
+            PopulatePatientDropdownSources();
+        }
+
+        private void InitializePatientDropdownEditors()
+        {
+            _cboNationality = CreateDropdownEditor(txtNationality, "cboNationality");
+            _cboIdType = CreateDropdownEditor(txtIdType, "cboIdentificationType");
+            ReplaceEditorControl(txtNationality, _cboNationality);
+            ReplaceEditorControl(txtIdType, _cboIdType);
+        }
+
+        private void PopulatePatientDropdownSources()
+        {
+            if (_cboNationality != null)
+            {
+                _cboNationality.Items.Clear();
+                _cboNationality.Items.AddRange(NationalityOptions.Cast<object>().ToArray());
+                _cboNationality.SelectedIndex = -1;
+            }
+
+            if (_cboIdType != null)
+            {
+                _cboIdType.Items.Clear();
+                _cboIdType.Items.AddRange(IdentificationTypeOptions.Cast<object>().ToArray());
+                _cboIdType.SelectedIndex = -1;
+            }
+        }
+
+        private static ComboBox CreateDropdownEditor(TextBox original, string name)
+        {
+            return new ComboBox
+            {
+                Name = name,
+                Dock = DockStyle.Fill,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Margin = original.Margin,
+                Font = original.Font,
+                TabIndex = original.TabIndex
+            };
+        }
+
+        private static void ReplaceEditorControl(Control oldControl, Control newControl)
+        {
+            if (oldControl == null || newControl == null)
+            {
+                return;
+            }
+
+            var parent = oldControl.Parent as TableLayoutPanel;
+            if (parent == null)
+            {
+                return;
+            }
+
+            var column = parent.GetColumn(oldControl);
+            var row = parent.GetRow(oldControl);
+            parent.Controls.Remove(oldControl);
+            oldControl.Visible = false;
+            oldControl.TabStop = false;
+            parent.Controls.Add(newControl, column, row);
+            parent.SetColumnSpan(newControl, parent.GetColumnSpan(oldControl));
+            parent.SetRowSpan(newControl, parent.GetRowSpan(oldControl));
         }
 
         private async void ucPatients_Load(object sender, EventArgs e)
@@ -317,8 +426,8 @@ namespace HospitalManagementSystem.UserControls
             dtpDob.Value = patient.DateOfBirth == default ? DateTime.Today : patient.DateOfBirth.Date;
             txtBloodGroup.Text = patient.BloodGroup;
             txtMaritalStatus.Text = patient.MaritalStatus;
-            txtNationality.Text = patient.Nationality;
-            txtIdType.Text = patient.IdentificationType;
+            SetNationalityValue(patient.Nationality);
+            SetIdentificationTypeValue(patient.IdentificationType);
             txtIdNumber.Text = patient.IdentificationNumber;
             chkIsActive.Checked = patient.IsActive;
             SetPatientImage(patient.ProfileImage);
@@ -333,8 +442,8 @@ namespace HospitalManagementSystem.UserControls
             dtpDob.Value = DateTime.Today;
             txtBloodGroup.Clear();
             txtMaritalStatus.Clear();
-            txtNationality.Clear();
-            txtIdType.Clear();
+            SetNationalityValue(null);
+            SetIdentificationTypeValue(null);
             txtIdNumber.Clear();
             chkIsActive.Checked = true;
             SetPatientImage(null);
@@ -545,8 +654,8 @@ namespace HospitalManagementSystem.UserControls
                 DateOfBirth = dtpDob.Value.Date,
                 BloodGroup = txtBloodGroup.Text.Trim(),
                 MaritalStatus = txtMaritalStatus.Text.Trim(),
-                Nationality = txtNationality.Text.Trim(),
-                IdentificationType = txtIdType.Text.Trim(),
+                Nationality = GetNationalityValue(),
+                IdentificationType = GetIdentificationTypeValue(),
                 IdentificationNumber = txtIdNumber.Text.Trim(),
                 IsActive = chkIsActive.Checked,
                 RegistrationDate = DateTime.Now,
@@ -606,16 +715,16 @@ namespace HospitalManagementSystem.UserControls
             SetReadOnlyState(txtLastName, !editable);
             SetReadOnlyState(txtBloodGroup, !editable);
             SetReadOnlyState(txtMaritalStatus, !editable);
-            SetReadOnlyState(txtNationality, !editable);
-            SetReadOnlyState(txtIdType, !editable);
             SetReadOnlyState(txtIdNumber, !editable);
 
             cboGender.Enabled = editable;
             dtpDob.Enabled = editable;
             chkIsActive.Enabled = editable;
+            SetDropdownReadOnlyState(_cboNationality, !editable);
+            SetDropdownReadOnlyState(_cboIdType, !editable);
             if (_btnUploadPhoto != null)
             {
-                _btnUploadPhoto.Enabled = editable;
+                _btnUploadPhoto.Enabled = true;
             }
         }
 
@@ -625,20 +734,69 @@ namespace HospitalManagementSystem.UserControls
             textBox.BackColor = isReadOnly ? ThemeManager.Colors.SurfaceMuted : ThemeManager.Colors.Surface;
         }
 
-        private void btnUploadPhoto_Click(object sender, EventArgs e)
+        private static void SetDropdownReadOnlyState(ComboBox comboBox, bool isReadOnly)
         {
-            if (_editorMode == PatientEditorMode.View)
+            if (comboBox == null)
             {
-                var selected = GetSelectedPatient();
-                if (selected == null)
-                {
-                    MessageBox.Show("Select a patient first, or click Add New.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
+                return;
+            }
 
-                _editingPatientId = selected.PatientID;
-                PopulateDetails(selected);
-                SetEditorMode(PatientEditorMode.EditExisting);
+            comboBox.Enabled = !isReadOnly;
+            comboBox.BackColor = isReadOnly ? ThemeManager.Colors.SurfaceMuted : ThemeManager.Colors.Surface;
+        }
+
+        private string GetNationalityValue()
+        {
+            return (_cboNationality?.Text ?? string.Empty).Trim();
+        }
+
+        private string GetIdentificationTypeValue()
+        {
+            return (_cboIdType?.Text ?? string.Empty).Trim();
+        }
+
+        private void SetNationalityValue(string value)
+        {
+            SetDropdownSelection(_cboNationality, value);
+        }
+
+        private void SetIdentificationTypeValue(string value)
+        {
+            SetDropdownSelection(_cboIdType, value);
+        }
+
+        private static void SetDropdownSelection(ComboBox comboBox, string value)
+        {
+            if (comboBox == null)
+            {
+                return;
+            }
+
+            var normalized = (value ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                comboBox.SelectedIndex = -1;
+                return;
+            }
+
+            var foundIndex = comboBox.FindStringExact(normalized);
+            if (foundIndex < 0)
+            {
+                comboBox.Items.Add(normalized);
+                foundIndex = comboBox.Items.Count - 1;
+            }
+
+            comboBox.SelectedIndex = foundIndex;
+        }
+
+        private async void btnUploadPhoto_Click(object sender, EventArgs e)
+        {
+            var selected = GetSelectedPatient();
+            var persistImmediately = _editorMode == PatientEditorMode.View && selected != null && selected.PatientID > 0;
+            if (_editorMode == PatientEditorMode.View && selected == null)
+            {
+                MessageBox.Show("Select a patient first, or click Add New.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
 
             using (var dialog = new OpenFileDialog())
@@ -653,11 +811,65 @@ namespace HospitalManagementSystem.UserControls
                 try
                 {
                     SetPatientImage(File.ReadAllBytes(dialog.FileName));
+                    if (persistImmediately)
+                    {
+                        await SavePatientImageAsync(selected.PatientID).ConfigureAwait(true);
+                    }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Unable to load image: {ex.Message}", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private async Task SavePatientImageAsync(int patientId)
+        {
+            var source = _patients.FirstOrDefault(patient => patient.PatientID == patientId);
+            if (source == null)
+            {
+                MessageBox.Show("Unable to find selected patient record.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                UseWaitCursor = true;
+                var payload = new Patient
+                {
+                    PatientID = source.PatientID,
+                    PatientCode = source.PatientCode,
+                    FirstName = source.FirstName,
+                    LastName = source.LastName,
+                    DateOfBirth = source.DateOfBirth,
+                    Gender = source.Gender,
+                    BloodGroup = source.BloodGroup,
+                    MaritalStatus = source.MaritalStatus,
+                    Nationality = source.Nationality,
+                    IdentificationType = source.IdentificationType,
+                    IdentificationNumber = source.IdentificationNumber,
+                    RegistrationDate = source.RegistrationDate ?? DateTime.Now,
+                    IsActive = source.IsActive,
+                    ProfileImage = CloneBytes(_patientPhotoBytes)
+                };
+
+                var updated = await _service.UpdateAsync(payload).ConfigureAwait(true);
+                if (!updated)
+                {
+                    MessageBox.Show("Patient image was not saved. Please try again.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                await ReloadAsync(patientId).ConfigureAwait(true);
+                MessageBox.Show("Patient image uploaded successfully.", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to save patient image: {ex.Message}", "Patients", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                UseWaitCursor = false;
             }
         }
 
@@ -757,6 +969,16 @@ namespace HospitalManagementSystem.UserControls
             if (_searchFilter != null)
             {
                 ThemeManager.StyleComboBox(_searchFilter);
+            }
+
+            if (_cboNationality != null)
+            {
+                ThemeManager.StyleComboBox(_cboNationality);
+            }
+
+            if (_cboIdType != null)
+            {
+                ThemeManager.StyleComboBox(_cboIdType);
             }
 
             if (_btnUploadPhoto != null)

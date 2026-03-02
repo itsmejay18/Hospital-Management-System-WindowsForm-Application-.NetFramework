@@ -405,7 +405,7 @@ namespace HospitalManagementSystem.UserControls
             btnCancel.Enabled = editable;
             if (_btnUploadPhoto != null)
             {
-                _btnUploadPhoto.Enabled = editable;
+                _btnUploadPhoto.Enabled = true;
             }
 
             txtSearch.Enabled = !editable;
@@ -699,22 +699,16 @@ namespace HospitalManagementSystem.UserControls
             return Tuple.Create(tokens[0], string.Join(" ", tokens.Skip(1)));
         }
 
-        private void btnUploadPhoto_Click(object sender, EventArgs e)
+        private async void btnUploadPhoto_Click(object sender, EventArgs e)
         {
-            if (_editorMode != DoctorEditorMode.EditExisting)
+            var selected = GetSelectedDoctor();
+            if (selected == null)
             {
-                var selected = GetSelectedDoctor();
-                if (selected == null)
-                {
-                    MessageBox.Show("Select a doctor first.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                _editingDoctorId = selected.DoctorID;
-                PopulateDetails(selected);
-                SetEditorMode(DoctorEditorMode.EditExisting);
+                MessageBox.Show("Select a doctor first.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
 
+            var persistImmediately = _editorMode == DoctorEditorMode.View;
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Title = "Select Doctor Image";
@@ -727,11 +721,40 @@ namespace HospitalManagementSystem.UserControls
                 try
                 {
                     SetDoctorImage(File.ReadAllBytes(dialog.FileName), markDirty: true);
+                    if (persistImmediately)
+                    {
+                        await PersistDoctorImageImmediatelyAsync(selected).ConfigureAwait(true);
+                    }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Unable to load image: {ex.Message}", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private async Task PersistDoctorImageImmediatelyAsync(Doctor selectedDoctor)
+        {
+            if (selectedDoctor == null || selectedDoctor.UserID <= 0)
+            {
+                MessageBox.Show("Selected doctor does not have a valid user account.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                UseWaitCursor = true;
+                await SaveDoctorImageAsync(selectedDoctor.UserID, selectedDoctor.DoctorName).ConfigureAwait(true);
+                await ReloadAsync(selectedDoctor.DoctorID).ConfigureAwait(true);
+                MessageBox.Show("Doctor image uploaded successfully.", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unable to save doctor image: {ex.Message}", "Doctors", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                UseWaitCursor = false;
             }
         }
 
