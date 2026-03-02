@@ -23,6 +23,18 @@ namespace HospitalManagementSystem
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            if (InstallationManager.CheckFirstRun())
+            {
+                using (var installer = new InstallerForm())
+                {
+                    if (installer.ShowDialog() != DialogResult.OK)
+                    {
+                        return;
+                    }
+                }
+            }
+
             Application.Run(new frmLogin());
         }
 

@@ -213,6 +213,7 @@ namespace HospitalManagementSystem.Forms
                 case "admin":
                 case "systemadministrator":
                 case "systemadmin":
+                case "superadmin":
                     return "administrator";
                 case "frontdesk":
                 case "frontdeskstaff":

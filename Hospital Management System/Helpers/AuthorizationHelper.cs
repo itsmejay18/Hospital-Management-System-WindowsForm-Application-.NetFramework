@@ -15,6 +15,7 @@ namespace HospitalManagementSystem.Helpers
                 ["admin"] = "administrator",
                 ["systemadministrator"] = "administrator",
                 ["systemadmin"] = "administrator",
+                ["superadmin"] = "administrator",
                 ["doctor"] = "doctor",
                 ["physician"] = "doctor",
                 ["nurse"] = "nurse",

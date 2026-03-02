@@ -82,6 +82,7 @@ namespace HospitalManagementSystem.UserControls
                 case "admin":
                 case "systemadministrator":
                 case "systemadmin":
+                case "superadmin":
                     return "administrator";
                 case "frontdesk":
                 case "frontdeskstaff":
