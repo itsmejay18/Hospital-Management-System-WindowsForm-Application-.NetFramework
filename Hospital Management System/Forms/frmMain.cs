@@ -149,7 +149,9 @@ namespace HospitalManagementSystem.Forms
 
         private void ShowProfile()
         {
-            LoadModule(new ucProfile(_currentUser), "My Profile");
+            var profile = new ucProfile(_currentUser);
+            profile.ProfileSaved += (_, __) => _ = ucHeader1.RefreshAvatarAsync(_currentUser.UserID);
+            LoadModule(profile, "My Profile");
         }
 
         private void Logout()

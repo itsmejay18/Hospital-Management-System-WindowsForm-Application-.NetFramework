@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using HospitalManagementSystem.DAL.DTOs;
 using HospitalManagementSystem.Models;
+using MySql.Data.MySqlClient;
 
 namespace HospitalManagementSystem.DAL.Repositories
 {
@@ -13,6 +15,9 @@ namespace HospitalManagementSystem.DAL.Repositories
     /// </summary>
     public sealed class UserRepository : RepositoryBase
     {
+        private static readonly object UserProfileImageSchemaLock = new object();
+        private static bool _userProfileImageSchemaChecked;
+
         /// <summary>
         /// Gets a user with role name by username.
         /// </summary>
@@ -394,12 +399,18 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
+                if (detail == null)
+                {
+                    throw new ArgumentNullException(nameof(detail));
+                }
+
                 const string sql = @"INSERT INTO UserDetails
                                     (UserID, FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address, EmergencyContact, ProfileImage)
                                     VALUES (@UserID, @FirstName, @LastName, @DateOfBirth, @Gender, @ContactNumber, @Address, @EmergencyContact, @ProfileImage);
                                     SELECT LAST_INSERT_ID();";
                 using (var connection = Db.OpenConnection())
                 {
+                    EnsureUserDetailProfileImageColumn(connection);
                     return connection.ExecuteScalar<int>(sql, detail);
                 }
             }, "AddUserDetail");
@@ -413,12 +424,18 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
+                if (detail == null)
+                {
+                    throw new ArgumentNullException(nameof(detail));
+                }
+
                 const string sql = @"INSERT INTO UserDetails
                                     (UserID, FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address, EmergencyContact, ProfileImage)
                                     VALUES (@UserID, @FirstName, @LastName, @DateOfBirth, @Gender, @ContactNumber, @Address, @EmergencyContact, @ProfileImage);
                                     SELECT LAST_INSERT_ID();";
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
+                    await EnsureUserDetailProfileImageColumnAsync(connection).ConfigureAwait(false);
                     return await connection.ExecuteScalarAsync<int>(sql, detail).ConfigureAwait(false);
                 }
             }, "AddUserDetailAsync");
@@ -432,6 +449,11 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafe(() =>
             {
+                if (detail == null)
+                {
+                    throw new ArgumentNullException(nameof(detail));
+                }
+
                 const string sql = @"UPDATE UserDetails SET
                                     FirstName = @FirstName,
                                     LastName = @LastName,
@@ -444,6 +466,7 @@ namespace HospitalManagementSystem.DAL.Repositories
                                     WHERE UserDetailID = @UserDetailID";
                 using (var connection = Db.OpenConnection())
                 {
+                    EnsureUserDetailProfileImageColumn(connection);
                     return connection.Execute(sql, detail) > 0;
                 }
             }, "UpdateUserDetail");
@@ -457,6 +480,11 @@ namespace HospitalManagementSystem.DAL.Repositories
         {
             return ExecuteSafeAsync(async () =>
             {
+                if (detail == null)
+                {
+                    throw new ArgumentNullException(nameof(detail));
+                }
+
                 const string sql = @"UPDATE UserDetails SET
                                     FirstName = @FirstName,
                                     LastName = @LastName,
@@ -469,9 +497,84 @@ namespace HospitalManagementSystem.DAL.Repositories
                                     WHERE UserDetailID = @UserDetailID";
                 using (var connection = await Db.OpenConnectionAsync().ConfigureAwait(false))
                 {
+                    await EnsureUserDetailProfileImageColumnAsync(connection).ConfigureAwait(false);
                     return await connection.ExecuteAsync(sql, detail).ConfigureAwait(false) > 0;
                 }
             }, "UpdateUserDetailAsync");
+        }
+
+        private static void EnsureUserDetailProfileImageColumn(MySqlConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            lock (UserProfileImageSchemaLock)
+            {
+                if (_userProfileImageSchemaChecked)
+                {
+                    return;
+                }
+            }
+
+            const string checkSql = @"SELECT DATA_TYPE
+                                      FROM information_schema.columns
+                                      WHERE table_schema = DATABASE()
+                                        AND LOWER(table_name) = 'userdetails'
+                                        AND LOWER(column_name) = 'profileimage'
+                                      LIMIT 1;";
+            var dataType = connection.ExecuteScalar<string>(checkSql);
+            if (string.IsNullOrWhiteSpace(dataType))
+            {
+                connection.Execute("ALTER TABLE UserDetails ADD COLUMN ProfileImage LONGBLOB NULL;");
+            }
+            else if (!string.Equals(dataType, "longblob", StringComparison.OrdinalIgnoreCase))
+            {
+                connection.Execute("ALTER TABLE UserDetails MODIFY COLUMN ProfileImage LONGBLOB NULL;");
+            }
+
+            lock (UserProfileImageSchemaLock)
+            {
+                _userProfileImageSchemaChecked = true;
+            }
+        }
+
+        private static async Task EnsureUserDetailProfileImageColumnAsync(MySqlConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            lock (UserProfileImageSchemaLock)
+            {
+                if (_userProfileImageSchemaChecked)
+                {
+                    return;
+                }
+            }
+
+            const string checkSql = @"SELECT DATA_TYPE
+                                      FROM information_schema.columns
+                                      WHERE table_schema = DATABASE()
+                                        AND LOWER(table_name) = 'userdetails'
+                                        AND LOWER(column_name) = 'profileimage'
+                                      LIMIT 1;";
+            var dataType = await connection.ExecuteScalarAsync<string>(checkSql).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(dataType))
+            {
+                await connection.ExecuteAsync("ALTER TABLE UserDetails ADD COLUMN ProfileImage LONGBLOB NULL;").ConfigureAwait(false);
+            }
+            else if (!string.Equals(dataType, "longblob", StringComparison.OrdinalIgnoreCase))
+            {
+                await connection.ExecuteAsync("ALTER TABLE UserDetails MODIFY COLUMN ProfileImage LONGBLOB NULL;").ConfigureAwait(false);
+            }
+
+            lock (UserProfileImageSchemaLock)
+            {
+                _userProfileImageSchemaChecked = true;
+            }
         }
 
         /// <summary>

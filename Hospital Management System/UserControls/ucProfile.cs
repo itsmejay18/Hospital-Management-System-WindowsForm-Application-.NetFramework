@@ -31,6 +31,7 @@ namespace HospitalManagementSystem.UserControls
         private UserDetail _userDetail;
         private byte[] _profileImageBytes;
         private bool _profileImageDirty;
+        public event EventHandler ProfileSaved;
 
         public ucProfile(AuthenticatedUser user)
         {
@@ -342,7 +343,7 @@ namespace HospitalManagementSystem.UserControls
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Title = "Select Profile Photo";
-                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp";
+                dialog.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif";
                 if (dialog.ShowDialog() != DialogResult.OK)
                 {
                     return;
@@ -413,6 +414,7 @@ namespace HospitalManagementSystem.UserControls
                 }
 
                 _profileImageDirty = false;
+                ProfileSaved?.Invoke(this, EventArgs.Empty);
                 MessageBox.Show("Profile details updated successfully.", "Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)

@@ -19,6 +19,7 @@ namespace HospitalManagementSystem.UserControls
         private Panel pnlDivider;
         private Panel pnlNotifyDot;
         private bool _dashboardMode;
+        private int _currentUserId;
 
         public ucHeader()
         {
@@ -38,9 +39,21 @@ namespace HospitalManagementSystem.UserControls
 
         public async void SetUser(int userId, string username, string roleName)
         {
+            _currentUserId = userId;
             lblUser.Text = $"User: {username} ({roleName})";
             await LoadAvatarAsync(userId).ConfigureAwait(true);
             ArrangeLayout();
+        }
+
+        public async Task RefreshAvatarAsync()
+        {
+            await LoadAvatarAsync(_currentUserId).ConfigureAwait(true);
+        }
+
+        public async Task RefreshAvatarAsync(int userId)
+        {
+            _currentUserId = userId;
+            await LoadAvatarAsync(_currentUserId).ConfigureAwait(true);
         }
 
         public void SetDashboardMode(bool isDashboard)
