@@ -180,6 +180,7 @@
     <Compile Include="Helpers\UserSession.cs" />
     <Compile Include="Helpers\AuthorizationHelper.cs" />
     <Compile Include="Helpers\AppSettingsStore.cs" />
+    <Compile Include="Helpers\DatabaseDefaults.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\ThemeManager.cs" />
     <Compile Include="Helpers\ExportHelper.cs" />

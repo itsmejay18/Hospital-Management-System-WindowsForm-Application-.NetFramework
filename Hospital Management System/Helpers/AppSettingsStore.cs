@@ -45,19 +45,19 @@ namespace HospitalManagementSystem.Helpers
 
         public string DbProfileKey { get; set; } = string.Empty;
 
-        public string DatabaseHost { get; set; } = "localhost";
+        public string DatabaseHost { get; set; } = DatabaseDefaults.Server;
 
-        public int DatabasePort { get; set; } = 3306;
+        public int DatabasePort { get; set; } = DatabaseDefaults.Port;
 
-        public string DatabaseName { get; set; } = "HospitalManagementSystem";
+        public string DatabaseName { get; set; } = DatabaseDefaults.DatabaseName;
 
-        public string DatabaseUsername { get; set; } = "root";
+        public string DatabaseUsername { get; set; } = DatabaseDefaults.Username;
 
-        public string DatabasePassword { get; set; } = "root";
+        public string DatabasePassword { get; set; } = DatabaseDefaults.Password;
 
         public bool DatabaseSetActiveProfile { get; set; } = true;
 
-        public string BootstrapConnection { get; set; } = string.Empty;
+        public string BootstrapConnection { get; set; } = DatabaseDefaults.ConnectionString;
     }
 
     /// <summary>

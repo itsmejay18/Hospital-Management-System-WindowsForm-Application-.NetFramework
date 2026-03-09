@@ -14,15 +14,15 @@ namespace HospitalManagementSystem
 {
     public sealed class InstallationOptions
     {
-        public string Server { get; set; } = "localhost";
+        public string Server { get; set; } = DatabaseDefaults.Server;
 
-        public int Port { get; set; } = 3306;
+        public int Port { get; set; } = DatabaseDefaults.Port;
 
-        public string DatabaseName { get; set; } = "HospitalManagementSystem";
+        public string DatabaseName { get; set; } = DatabaseDefaults.DatabaseName;
 
-        public string Username { get; set; } = "root";
+        public string Username { get; set; } = DatabaseDefaults.Username;
 
-        public string Password { get; set; } = "root";
+        public string Password { get; set; } = DatabaseDefaults.Password;
     }
 
     public static class InstallationManager
@@ -122,17 +122,17 @@ namespace HospitalManagementSystem
 
             if (string.IsNullOrWhiteSpace(options.Server))
             {
-                options.Server = "localhost";
+                options.Server = DatabaseDefaults.Server;
             }
 
             if (string.IsNullOrWhiteSpace(options.DatabaseName))
             {
-                options.DatabaseName = "HospitalManagementSystem";
+                options.DatabaseName = DatabaseDefaults.DatabaseName;
             }
 
             if (string.IsNullOrWhiteSpace(options.Username))
             {
-                options.Username = "root";
+                options.Username = DatabaseDefaults.Username;
             }
 
             return options;
@@ -746,10 +746,10 @@ namespace HospitalManagementSystem
             }
 
             var builder = new MySqlConnectionStringBuilder(connectionString);
-            options.Server = string.IsNullOrWhiteSpace(builder.Server) ? "localhost" : builder.Server;
-            options.Port = builder.Port > 0 ? Convert.ToInt32(builder.Port, CultureInfo.InvariantCulture) : 3306;
-            options.DatabaseName = string.IsNullOrWhiteSpace(builder.Database) ? "HospitalManagementSystem" : builder.Database;
-            options.Username = string.IsNullOrWhiteSpace(builder.UserID) ? "root" : builder.UserID;
+            options.Server = string.IsNullOrWhiteSpace(builder.Server) ? DatabaseDefaults.Server : builder.Server;
+            options.Port = builder.Port > 0 ? Convert.ToInt32(builder.Port, CultureInfo.InvariantCulture) : DatabaseDefaults.Port;
+            options.DatabaseName = string.IsNullOrWhiteSpace(builder.Database) ? DatabaseDefaults.DatabaseName : builder.Database;
+            options.Username = string.IsNullOrWhiteSpace(builder.UserID) ? DatabaseDefaults.Username : builder.UserID;
             options.Password = builder.Password ?? string.Empty;
             return options;
         }
