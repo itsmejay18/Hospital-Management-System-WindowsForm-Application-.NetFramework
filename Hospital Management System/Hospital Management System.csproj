@@ -82,6 +82,9 @@
     <Reference Include="System.Threading.Tasks.Extensions">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Form1.cs">
@@ -118,6 +121,7 @@
     <Compile Include="Forms\frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\frmDatabaseConnection.cs" />
     <Compile Include="Forms\InstallerForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -180,6 +184,9 @@
     <Compile Include="Helpers\UserSession.cs" />
     <Compile Include="Helpers\AuthorizationHelper.cs" />
     <Compile Include="Helpers\AppSettingsStore.cs" />
+    <Compile Include="Helpers\BackupModels.cs" />
+    <Compile Include="Helpers\DatabaseBackupService.cs" />
+    <Compile Include="Helpers\DatabaseConnectionProfiles.cs" />
     <Compile Include="Helpers\DatabaseDefaults.cs" />
     <Compile Include="Helpers\PasswordHasher.cs" />
     <Compile Include="Helpers\ThemeManager.cs" />

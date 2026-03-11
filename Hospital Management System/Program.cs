@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HospitalManagementSystem.Forms;
+using HospitalManagementSystem.Helpers;
 
 namespace HospitalManagementSystem
 {
@@ -24,7 +25,7 @@ namespace HospitalManagementSystem
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            if (InstallationManager.CheckFirstRun())
+            if (ShouldRunLocalInstaller())
             {
                 using (var installer = new InstallerForm())
                 {
@@ -36,6 +37,28 @@ namespace HospitalManagementSystem
             }
 
             Application.Run(new frmLogin());
+        }
+
+        private static bool ShouldRunLocalInstaller()
+        {
+            try
+            {
+                var profile = AppSettingsStore.Load();
+                if (profile != null
+                    && string.Equals(
+                        profile.DatabaseHost?.Trim(),
+                        DatabaseDefaults.Server,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                // Fall back to the existing first-run logic.
+            }
+
+            return InstallationManager.CheckFirstRun();
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)

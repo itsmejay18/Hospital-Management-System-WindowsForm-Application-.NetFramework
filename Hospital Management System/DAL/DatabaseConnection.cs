@@ -57,6 +57,15 @@ namespace HospitalManagementSystem.DAL
         }
 
         /// <summary>
+        /// Resolves the currently active connection string, including any runtime override.
+        /// </summary>
+        /// <returns>The active connection string.</returns>
+        public static string GetActiveConnectionString()
+        {
+            return ResolveConnectionString();
+        }
+
+        /// <summary>
         /// Opens and returns a new MySQL connection.
         /// </summary>
         /// <returns>An open <see cref="MySqlConnection"/>.</returns>

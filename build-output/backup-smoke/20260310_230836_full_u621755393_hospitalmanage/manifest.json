@@ -1,0 +1,14 @@
+﻿{
+  "BackupId": "20260310150836-172eb8c1",
+  "BackupKind": 0,
+  "SourceServer": "srv1237.hstgr.io",
+  "SourceDatabase": "u621755393_hospitalmanage",
+  "CreatedAtUtc": "2026-03-10T15:08:36.8934036Z",
+  "BaseFullBackupId": "20260310150836-172eb8c1",
+  "PreviousBackupId": null,
+  "TotalTables": 35,
+  "TotalRows": 1332,
+  "ChangedTables": 35,
+  "ChangedRows": 1332,
+  "IsEmptyDelta": false
+}

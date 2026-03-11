@@ -34,8 +34,8 @@ namespace HospitalManagementSystem
             public string Sql { get; set; }
         }
 
-        public const string SuperAdminUsername = "superadmin";
-        public const string DefaultSuperAdminPassword = "SuperAdmin123!";
+        public const string SuperAdminUsername = "admin";
+        public const string DefaultSuperAdminPassword = "admin123";
         private const string ConnectionName = "HospitalDB";
         private const string SchemaFileName = "hospitalmanagementsystem.sql";
 
@@ -270,7 +270,7 @@ namespace HospitalManagementSystem
             }
 
             var passwordHash = ComputeSha256(plainPassword);
-            var email = "superadmin@hospital.local";
+            var email = "admin@hospital.local";
 
             using (var updateCommand = new MySqlCommand(
                 @"UPDATE users
@@ -778,7 +778,18 @@ namespace HospitalManagementSystem
             try
             {
                 var profile = AppSettingsStore.Load();
-                profile.DatabaseMode = IsLocalHost(options.Server) ? "Local" : "Network";
+                if (IsLocalHost(options.Server))
+                {
+                    profile.DatabaseMode = DatabaseConnectionProfiles.LocalMode;
+                }
+                else if (string.Equals(options.Server?.Trim(), DatabaseDefaults.Server, StringComparison.OrdinalIgnoreCase))
+                {
+                    profile.DatabaseMode = DatabaseConnectionProfiles.OnlineMode;
+                }
+                else
+                {
+                    profile.DatabaseMode = DatabaseConnectionProfiles.NetworkMode;
+                }
                 profile.DatabaseTransport = profile.DatabaseMode == "Local" ? "Wired" : "Wireless";
                 profile.DatabaseHost = options.Server;
                 profile.DatabasePort = options.Port;

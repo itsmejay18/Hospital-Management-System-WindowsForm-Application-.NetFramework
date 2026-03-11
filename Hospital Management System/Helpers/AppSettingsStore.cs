@@ -39,7 +39,7 @@ namespace HospitalManagementSystem.Helpers
 
         public bool EnableDarkMode { get; set; }
 
-        public string DatabaseMode { get; set; } = "Local";
+        public string DatabaseMode { get; set; } = DatabaseConnectionProfiles.OnlineMode;
 
         public string DatabaseTransport { get; set; } = "Wired";
 

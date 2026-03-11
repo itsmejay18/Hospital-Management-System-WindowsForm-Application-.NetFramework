@@ -24,6 +24,7 @@ namespace HospitalManagementSystem.UserControls
         private System.Windows.Forms.DataGridViewTextBoxColumn colLastLogin;
         private System.Windows.Forms.GroupBox grpDetails;
         private System.Windows.Forms.Label lblDetailsHint;
+        private System.Windows.Forms.Panel pnlDetailScroll;
         private System.Windows.Forms.TableLayoutPanel tlpDetails;
         private System.Windows.Forms.Label lblUserId;
         private System.Windows.Forms.TextBox txtUserId;
@@ -72,6 +73,7 @@ namespace HospitalManagementSystem.UserControls
             this.colActive = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.colLastLogin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.grpDetails = new System.Windows.Forms.GroupBox();
+            this.pnlDetailScroll = new System.Windows.Forms.Panel();
             this.tlpDetails = new System.Windows.Forms.TableLayoutPanel();
             this.lblUserId = new System.Windows.Forms.Label();
             this.txtUserId = new System.Windows.Forms.TextBox();
@@ -96,6 +98,7 @@ namespace HospitalManagementSystem.UserControls
             this.splitMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsers)).BeginInit();
             this.grpDetails.SuspendLayout();
+            this.pnlDetailScroll.SuspendLayout();
             this.tlpDetails.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -300,7 +303,7 @@ namespace HospitalManagementSystem.UserControls
             // 
             // grpDetails
             // 
-            this.grpDetails.Controls.Add(this.tlpDetails);
+            this.grpDetails.Controls.Add(this.pnlDetailScroll);
             this.grpDetails.Controls.Add(this.lblDetailsHint);
             this.grpDetails.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpDetails.Location = new System.Drawing.Point(0, 0);
@@ -311,8 +314,19 @@ namespace HospitalManagementSystem.UserControls
             this.grpDetails.TabStop = false;
             this.grpDetails.Text = "User Details";
             // 
+            // pnlDetailScroll
+            // 
+            this.pnlDetailScroll.AutoScroll = true;
+            this.pnlDetailScroll.Controls.Add(this.tlpDetails);
+            this.pnlDetailScroll.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlDetailScroll.Location = new System.Drawing.Point(10, 24);
+            this.pnlDetailScroll.Name = "pnlDetailScroll";
+            this.pnlDetailScroll.Size = new System.Drawing.Size(336, 426);
+            this.pnlDetailScroll.TabIndex = 0;
+            // 
             // tlpDetails
             // 
+            this.tlpDetails.AutoSize = true;
             this.tlpDetails.ColumnCount = 2;
             this.tlpDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 37F));
             this.tlpDetails.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 63F));
@@ -331,8 +345,9 @@ namespace HospitalManagementSystem.UserControls
             this.tlpDetails.Controls.Add(this.lblLastLogin, 0, 6);
             this.tlpDetails.Controls.Add(this.txtLastLogin, 1, 6);
             this.tlpDetails.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tlpDetails.Location = new System.Drawing.Point(10, 24);
+            this.tlpDetails.Location = new System.Drawing.Point(0, 0);
             this.tlpDetails.Name = "tlpDetails";
+            this.tlpDetails.Padding = new System.Windows.Forms.Padding(0, 4, 0, 8);
             this.tlpDetails.RowCount = 7;
             this.tlpDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
             this.tlpDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
@@ -341,7 +356,7 @@ namespace HospitalManagementSystem.UserControls
             this.tlpDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
             this.tlpDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
             this.tlpDetails.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.tlpDetails.Size = new System.Drawing.Size(336, 252);
+            this.tlpDetails.Size = new System.Drawing.Size(336, 264);
             this.tlpDetails.TabIndex = 0;
             // 
             // lblUserId
@@ -504,6 +519,8 @@ namespace HospitalManagementSystem.UserControls
             this.splitMain.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsers)).EndInit();
             this.grpDetails.ResumeLayout(false);
+            this.pnlDetailScroll.ResumeLayout(false);
+            this.pnlDetailScroll.PerformLayout();
             this.tlpDetails.ResumeLayout(false);
             this.tlpDetails.PerformLayout();
             this.ResumeLayout(false);

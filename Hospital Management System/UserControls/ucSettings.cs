@@ -238,7 +238,7 @@ namespace HospitalManagementSystem.UserControls
             AddRow(table, "Late Fee / Day", _numLateFee);
             AddRow(table, "Tax Rate (%)", _numTaxRate);
             AddRow(table, "Backup Path", _txtBackupPath);
-            AddRow(table, "MySQLDump Path", _txtDumpPath);
+            AddRow(table, "Legacy SQL Tool", _txtDumpPath);
             AddRow(table, "SMTP Host", _txtSmtpHost);
             AddRow(table, "SMTP Port", _numSmtpPort);
             AddRow(table, "SMTP User", _txtSmtpUser);
@@ -304,7 +304,7 @@ namespace HospitalManagementSystem.UserControls
             {
                 Dock = DockStyle.Top,
                 Height = 28,
-                Text = "Configure Local or Network MySQL connection profiles (Wired/Wireless).",
+                Text = "Configure Local, Online, or Network MySQL connection profiles.",
                 ForeColor = ThemeManager.Colors.TextSecondary
             };
 
@@ -351,7 +351,12 @@ namespace HospitalManagementSystem.UserControls
                 Height = 30,
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            _cboDbMode.Items.AddRange(new object[] { "Local", "Network" });
+            _cboDbMode.Items.AddRange(new object[]
+            {
+                DatabaseConnectionProfiles.LocalMode,
+                DatabaseConnectionProfiles.OnlineMode,
+                DatabaseConnectionProfiles.NetworkMode
+            });
 
             _cboDbTransport = new ComboBox
             {
@@ -487,7 +492,7 @@ namespace HospitalManagementSystem.UserControls
                 return;
             }
 
-            var mode = string.IsNullOrWhiteSpace(profile.DatabaseMode) ? "Local" : profile.DatabaseMode.Trim();
+            var mode = DatabaseConnectionProfiles.NormalizeMode(profile.DatabaseMode);
             _cboDbMode.SelectedItem = mode;
             if (_cboDbMode.SelectedIndex < 0)
             {
@@ -502,10 +507,11 @@ namespace HospitalManagementSystem.UserControls
             }
 
             _txtDbProfileKey.Text = profile.DbProfileKey ?? string.Empty;
-            _txtDbHost.Text = string.IsNullOrWhiteSpace(profile.DatabaseHost) ? "localhost" : profile.DatabaseHost;
+            var preset = DatabaseConnectionProfiles.CreatePreset(mode);
+            _txtDbHost.Text = string.IsNullOrWhiteSpace(profile.DatabaseHost) ? preset.Host : profile.DatabaseHost;
             _numDbPort.Value = ClampNumeric(_numDbPort, profile.DatabasePort);
-            _txtDbName.Text = string.IsNullOrWhiteSpace(profile.DatabaseName) ? "HospitalManagementSystem" : profile.DatabaseName;
-            _txtDbUsername.Text = string.IsNullOrWhiteSpace(profile.DatabaseUsername) ? "root" : profile.DatabaseUsername;
+            _txtDbName.Text = string.IsNullOrWhiteSpace(profile.DatabaseName) ? preset.DatabaseName : profile.DatabaseName;
+            _txtDbUsername.Text = string.IsNullOrWhiteSpace(profile.DatabaseUsername) ? preset.Username : profile.DatabaseUsername;
             _txtDbPassword.Text = profile.DatabasePassword ?? string.Empty;
             _chkDbSetActiveProfile.Checked = profile.DatabaseSetActiveProfile;
 
@@ -565,12 +571,14 @@ namespace HospitalManagementSystem.UserControls
 
         private string BuildConnectionStringFromFields()
         {
+            var selectedMode = DatabaseConnectionProfiles.NormalizeMode(_cboDbMode?.SelectedItem?.ToString());
+            var preset = DatabaseConnectionProfiles.CreatePreset(selectedMode);
             var builder = new MySqlConnectionStringBuilder
             {
-                Server = string.IsNullOrWhiteSpace(_txtDbHost.Text) ? "localhost" : _txtDbHost.Text.Trim(),
+                Server = string.IsNullOrWhiteSpace(_txtDbHost.Text) ? preset.Host : _txtDbHost.Text.Trim(),
                 Port = Convert.ToUInt32(_numDbPort.Value),
-                Database = string.IsNullOrWhiteSpace(_txtDbName.Text) ? "HospitalManagementSystem" : _txtDbName.Text.Trim(),
-                UserID = string.IsNullOrWhiteSpace(_txtDbUsername.Text) ? "root" : _txtDbUsername.Text.Trim(),
+                Database = string.IsNullOrWhiteSpace(_txtDbName.Text) ? preset.DatabaseName : _txtDbName.Text.Trim(),
+                UserID = string.IsNullOrWhiteSpace(_txtDbUsername.Text) ? preset.Username : _txtDbUsername.Text.Trim(),
                 Password = _txtDbPassword.Text ?? string.Empty,
                 Pooling = true,
                 CharacterSet = "utf8mb4",

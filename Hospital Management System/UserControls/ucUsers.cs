@@ -130,7 +130,7 @@ namespace HospitalManagementSystem.UserControls
             imagePanel.Controls.Add(lblImage);
             imagePanel.Controls.Add(_picProfileImage);
             imagePanel.Controls.Add(_btnUploadPhoto);
-            grpDetails.Controls.Add(imagePanel);
+            pnlDetailScroll.Controls.Add(imagePanel);
             imagePanel.BringToFront();
         }
 
