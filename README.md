@@ -1,104 +1,188 @@
 # Hospital Management System
 
-Hospital Management System is a Windows Forms desktop application for managing hospital operations such as patient records, doctor management, appointments, room admissions, billing, user accounts, reports, and administrative settings. It is built for a multi-user hospital environment where each staff role sees only the modules relevant to their work.
+Hospital Management System is a role-based Windows Forms desktop application built to support day-to-day hospital operations. It centralizes patient information, doctor records, appointments, room admissions, billing, reports, user administration, and system configuration in a single MySQL-backed application.
 
-## What This System Is
+This repository contains the main source code, SQL schema and seed files, installer assets, and deployment helpers for the system.
 
-This system is designed to help a hospital or clinic manage daily operations in one desktop platform connected to a MySQL database.
+## Overview
 
-It supports:
+The goal of this project is to help hospital staff work from one connected platform instead of using separate spreadsheets, paper records, or disconnected tools. The application is designed for multiple staff roles, and each role is shown only the modules that match its responsibilities.
 
-- patient registration and profile management
-- doctor records and schedules
-- appointment booking and status tracking
-- room and bed management
-- admissions and discharge workflows
-- billing, invoices, and payment processing
-- audit logs, backup and restore, and exportable reports
-- role-based dashboards for different staff users
+At a high level, the system supports:
 
-## User Roles
+- patient registration and profile maintenance
+- doctor records, schedules, and profile images
+- appointment scheduling and status tracking
+- room occupancy monitoring
+- patient admissions and discharge handling
+- invoice review and payment processing
+- report generation with export to Excel, CSV, and PDF
+- user management, audit logs, backup, restore, and administrative settings
 
-The application is role-based. Access changes depending on the signed-in user.
+## User Roles And Access
+
+The application uses role-based access control. Navigation, dashboards, and module access depend on the signed-in user's role.
 
 ### Administrator
 
+The Administrator is the highest operational role in the system.
+
 - full access to all modules
 - manage patients, doctors, appointments, rooms, billing, reports, users, and settings
-- open audit logs and database tools
-- manage backup and restore settings
+- open audit logs
+- configure database, backup, branding, and system settings
 
 ### Doctor
 
-- open doctor dashboard
-- view patients and doctor records
+The Doctor role is focused on patient care and appointment-related work.
+
+- access patients
+- access doctors
 - access appointments
-- open medical and operational reports
+- access reports
+- open a doctor-specific dashboard
 - manage own profile
 
 ### Nurse
 
-- open nurse dashboard
+The Nurse role supports patient care, room monitoring, and admission workflows.
+
 - access patients
-- manage appointments
-- work with rooms, admissions, and discharge workflows
+- access appointments
+- access rooms and admissions
+- open a nurse-specific dashboard
 - manage own profile
 
 ### Receptionist
 
-- open receptionist dashboard
+The Receptionist role is the front-desk and intake role in the system.
+
 - register and manage patients
-- manage doctors and appointments
-- handle room assignments and admissions
-- process billing-related front-desk work
+- access doctors
+- manage appointments
+- manage room assignments and admissions
+- access billing
+- open a receptionist-specific dashboard
 - manage own profile
 
 ### Pharmacist
 
-- open pharmacist dashboard
-- access patient-related billing context
-- work with billing screens and pharmacy-related reports
+The Pharmacist role is connected to billing, medicine-related records, and pharmacy reporting.
+
+- access patient-related billing workflows
+- access billing
+- access reports
+- open a pharmacist-specific dashboard
 - manage own profile
 
 ### Lab Technician
 
-- open lab technician dashboard
-- access patients and appointments
-- use reports related to laboratory activity and billing
+The Lab Technician role supports appointment-related coordination and laboratory reporting workflows.
+
+- access patients
+- access appointments
+- access reports
+- open a lab technician-specific dashboard
 - manage own profile
 
 ### Accountant
 
-- open accountant dashboard
-- manage invoices and payment processing
-- access financial and patient payment reports
+The Accountant role handles financial review and payment processing.
+
+- access billing
+- access reports
+- open an accountant-specific dashboard
 - manage own profile
 
 ### HR Manager
 
-- open HR dashboard
+The HR Manager role focuses on staff-related oversight and reporting.
+
 - access doctor records
-- review reports relevant to staffing and performance
+- access reports
+- open an HR-specific dashboard
 - manage own profile
 
-## Main Features
+## Main Modules
 
-- role-based authentication and navigation
-- first-run installer for database setup
-- local, network, and online database connection profiles
-- patient records with profile image support
-- doctor records, schedules, and profile images
-- appointment scheduling and tracking
-- room occupancy, admissions, and discharge summary handling
-- invoice and payment processing
-- audit logs
-- backup and restore tools
-- report export to Excel, CSV, and PDF
-- configurable branding, SMTP, and hospital settings
+Based on the current codebase, the main end-user modules available in the application are:
+
+### Dashboard
+
+- administrator dashboard
+- role-specific dashboards for staff users
+- live operational metrics pulled from the database
+
+### Patients
+
+- patient registration
+- demographic details
+- contact information
+- profile image support
+- search and filtering
+
+### Doctors
+
+- doctor profile management
+- specialization and consultation fee management
+- doctor image support
+- doctor schedule-related workflows
+
+### Appointments
+
+- appointment creation and editing
+- patient and doctor scheduling
+- appointment type and status tracking
+- search and filtering
+
+### Rooms And Admissions
+
+- room list and occupancy monitoring
+- bed availability tracking
+- patient admission
+- discharge processing
+- admission reason and diagnosis support
+
+### Billing
+
+- invoice listing
+- invoice review
+- payment processing
+- patient billing lookup
+
+### Reports
+
+- load operational and financial reports from the database
+- export to Excel
+- export to CSV
+- export to PDF
+- quick access to user, audit, and backup dialogs
+
+### Users
+
+- user account administration
+- role assignment
+- active/inactive status management
+- profile image support
+
+### Settings
+
+- company branding details
+- backup path and SQL dump path
+- SMTP configuration
+- theme settings
+- database profile setup
+- audit and user management access for administrators
+
+### Profile
+
+- personal user details
+- profile image updates
+- self-service profile maintenance
 
 ## Available Reports
 
-The reporting module includes:
+The reporting module currently includes:
 
 - Patients
 - Appointments
@@ -112,7 +196,13 @@ The reporting module includes:
 - Laboratory Billing
 - Statistical Summary
 
-## Tech Stack
+Reports can be exported in:
+
+- Excel
+- CSV
+- PDF
+
+## Technology Stack
 
 - C#
 - .NET Framework 4.7.2
@@ -131,25 +221,58 @@ Hospital Management System/   Main WinForms application source
 database/                     SQL seed and upgrade scripts
 Dumps/                        Main SQL dump/schema
 Installer/                    Installer and packaged builds
-tools/                        Utility tooling such as seed helpers
+tools/                        Utility tools such as seed helpers
 Assets/                       Branding and image assets
 ```
 
-Inside the main project, the code is organized into:
+Inside the main project, the code is primarily organized into:
 
 - `BLL/` for business logic services
-- `DAL/` for repositories and database access
-- `Models/` for entities and DTOs
-- `Forms/` for main forms and shared dialogs
-- `UserControls/` for feature modules and dashboards
-- `Helpers/` for app settings, authorization, export, backup, hashing, and theming
+- `DAL/` for repositories, DTOs, and database access
+- `Models/` for domain entities
+- `Forms/` for login, main shell, installer, and shared dialogs
+- `UserControls/` for the feature modules and dashboards
+- `Helpers/` for authorization, theming, settings, backup, hashing, and export utilities
+
+The solution currently contains one main application project:
+
+- `Hospital Management System.sln`
+- `Hospital Management System/Hospital Management System.csproj`
+
+## Security And Authentication
+
+The project currently uses:
+
+- role-based authorization checks
+- session-aware navigation
+- PBKDF2 password hashing for the current password format
+- compatibility handling for legacy password formats during login
+- automatic migration of legacy passwords to the current hash format after successful authentication
+
+## Database And Installation
+
+The application supports multiple database connection modes:
+
+- `Local`
+- `Network`
+- `Online`
+
+The first-run installer and runtime database connection screens can help:
+
+- test MySQL connectivity
+- save a working database profile
+- apply a runtime connection string
+- create the target database if needed
+- install the schema from the SQL dump
+- ensure required user roles exist
+- create or repair the bootstrap administrator account
 
 ## Getting Started
 
 ### Prerequisites
 
 - Windows
-- Visual Studio 2022 or compatible version for .NET Framework projects
+- Visual Studio 2022 or another version that supports .NET Framework projects
 - .NET Framework 4.7.2 Developer Pack
 - MySQL Server
 - NuGet package restore enabled
@@ -163,11 +286,12 @@ Inside the main project, the code is organized into:
 5. Import the main schema from `Dumps/hospitalmanagementsystem.sql`.
 6. Optional: import `database/seed_all_tables.sql` for sample data.
 7. Run the `Hospital Management System` project.
-8. On first run, use the installer or database connection dialog to configure the MySQL connection.
+8. On first launch, use the installer or the database connection dialog to configure MySQL access.
+9. Choose the database mode that matches your environment: `Local`, `Network`, or `Online`.
 
 ## Sample Accounts
 
-The repository includes sample credentials in `users.txt`, and seed scripts also use `admin123` as the default password for several demo users.
+The repository includes sample credentials in `users.txt`, and the seed scripts also use `admin123` as the default password for several demo accounts.
 
 Common sample accounts:
 
@@ -187,12 +311,27 @@ Build from Visual Studio, or use MSBuild from a Developer Command Prompt:
 msbuild "Hospital Management System.sln" /t:Build /p:Configuration=Debug
 ```
 
-## Notes For GitHub Publishing
+## Current Scope
 
-- Review and remove environment-specific database credentials before publishing publicly.
-- Check `DatabaseDefaults.cs`, installer defaults, and configuration files for hard-coded connection values.
-- If you change schema or seed data, update the SQL files in `database/` or `Dumps/`.
-- Consider adding a `LICENSE` file before open-source publication.
+From the current project scan, this repository is focused on the desktop hospital management application itself. It does not currently include a separate automated test project in the solution.
+
+## Notes Before Publishing Publicly
+
+Before making this repository public on GitHub, review the project carefully for environment-specific configuration.
+
+Important areas to check:
+
+- database host, username, and password defaults
+- installer defaults
+- application configuration files
+- stored connection profile values
+
+Recommended cleanup steps:
+
+1. remove hard-coded production or personal database credentials
+2. replace them with safe placeholders or environment-specific setup instructions
+3. keep only sample credentials that are clearly marked as demo/test data
+4. add a `LICENSE` file if you plan to open-source the project
 
 ## Contributing
 
@@ -200,9 +339,9 @@ Contributions are welcome.
 
 Suggested workflow:
 
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Test the affected module manually.
-5. Update SQL scripts if the database schema changes.
-6. Open a pull request with a short summary of the change.
+1. fork the repository
+2. create a feature branch
+3. make your changes
+4. test the affected module manually
+5. update SQL scripts if the schema changes
+6. open a pull request with a short summary of the change
